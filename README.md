@@ -33,7 +33,7 @@ Find study partners, form study groups, and post collaborative projects — all 
 | Framework | Next.js 16 (App Router, TypeScript) |
 | Styling | Tailwind CSS 4 |
 | Icons | Lucide React |
-| Auth | JWT (jsonwebtoken) + bcrypt |
+| Auth | Supabase Auth (email + password) |
 | Database | JSON-file storage (no setup required) |
 | State | React Context API |
 
@@ -53,18 +53,26 @@ cd studybuddy
 npm install
 ```
 
-### Environment Variables
+### Supabase Setup (Required)
 
-Copy `.env.example` to `.env` and set a strong `JWT_SECRET`:
+1. Go to [supabase.com](https://supabase.com) and create a free project
+2. In your project's **Settings > API** page, copy your **Project URL** and **anon/public key**
+3. Create a `.env` file:
 
 ```bash
 cp .env.example .env
 ```
 
+4. Add your Supabase credentials:
+
 ```env
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-JWT_SECRET=your-very-strong-random-secret-here
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-public-key-here
 ```
+
+5. Enable **Email** auth in Supabase Dashboard > Authentication > Providers
+
+> **Note:** `.env` is git-ignored — your API key is never committed to the repo.
 
 ### Run
 
@@ -79,6 +87,8 @@ npm run dev
 npm run build
 npm run start
 ```
+
+Ensure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set in your environment.
 
 ---
 

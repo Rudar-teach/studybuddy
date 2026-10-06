@@ -1,21 +1,13 @@
 import { NextResponse } from "next/server";
-import { verifyToken, getUserById, getAllUsers } from "@/lib/auth";
+import { getUserFromRequest } from "@/lib/auth-middleware";
+import { getUserById, getAllUsers } from "@/lib/auth";
 import { getTopMatches } from "@/lib/matching";
 
 export async function GET(request: Request) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const token = authHeader.substring(7);
-    const payload = verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
-    const currentUser = getUserById(payload.userId);
+    const userResult = await getUserFromRequest(request);
+    if (userResult instanceof Response) return userResult;
+    const currentUser = getUserById(userResult.id);
     if (!currentUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }

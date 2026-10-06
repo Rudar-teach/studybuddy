@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { verifyToken, getUserById } from "@/lib/auth";
 import { getGroupById } from "@/lib/groups";
 import { createMessage, getMessagesForGroup } from "@/lib/messages";
+import { getUserFromRequest } from "@/lib/auth-middleware";
 
 export async function GET(
   request: Request,
@@ -26,21 +26,8 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const token = authHeader.substring(7);
-    const payload = verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
-    const user = getUserById(payload.userId);
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
+    const user = await getUserFromRequest(request);
+    if (user instanceof Response) return user;
 
     const { id } = await params;
     const group = getGroupById(id);

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { createSupabaseClient } from "@/lib/supabase";
 import type { User, StudyGroup, CollaborationRequest, Message } from "@/types";
 
 interface Project {
@@ -14,11 +15,29 @@ interface Project {
   createdAt: string;
 }
 
+function userFromSession(session: any): User {
+  return {
+    id: session.user.id,
+    email: session.user.email || "",
+    name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "",
+    password: "",
+    bio: session.user.user_metadata?.bio || "",
+    subjects: session.user.user_metadata?.subjects || [],
+    skills: session.user.user_metadata?.skills || [],
+    availability: session.user.user_metadata?.availability || [],
+    learningGoals: session.user.user_metadata?.learning_goals || [],
+    year: session.user.user_metadata?.year || "",
+    major: session.user.user_metadata?.major || "",
+    createdAt: session.user.created_at || new Date().toISOString(),
+    avatar: session.user.user_metadata?.avatar_url || "",
+  };
+}
+
 interface AuthContextType {
   user: User | null;
-  token: string | null;
+  session: any | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (data: RegisterData) => Promise<{ success: boolean; error?: string }>;
+  register: (data: { name: string; email: string; password: string }) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   updateUser: (data: Partial<User>) => void;
   isLoading: boolean;
@@ -31,21 +50,18 @@ interface RegisterData {
 }
 
 interface AppContextType {
-  // Auth
   user: User | null;
-  token: string | null;
+  session: any | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (data: RegisterData) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   updateUser: (data: Partial<User>) => void;
   isLoading: boolean;
 
-  // Navigation
   currentPage: string;
   navigateTo: (page: string) => void;
   selectedGroupId: string | null;
 
-  // Data
   groups: StudyGroup[];
   setGroups: React.Dispatch<React.SetStateAction<StudyGroup[]>>;
   projects: Project[];
@@ -60,7 +76,6 @@ interface AppContextType {
   addNotification: (notification: Omit<Notification, "id" | "timestamp">) => void;
   removeNotification: (id: string) => void;
 
-  // Theme
   theme: "dark" | "light";
   toggleTheme: () => void;
 }
@@ -78,34 +93,47 @@ const AppContext = createContext<AppContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [session, setSession] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("studybuddy_token");
-    const storedUser = localStorage.getItem("studybuddy_user");
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    let mounted = true;
+    let unsubscribe: (() => void) | null = null;
+
+    (async () => {
+      const supabase = createSupabaseClient();
+      if (!supabase) {
+        if (mounted) setIsLoading(false);
+        return;
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!mounted) return;
+      setSession(session);
+      if (session?.user) setUser(userFromSession(session));
+      setIsLoading(false);
+
+      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (!mounted) return;
+        setSession(session);
+        if (session?.user) setUser(userFromSession(session));
+        else setUser(null);
+      });
+      unsubscribe = () => data.subscription.unsubscribe();
+    })();
+
+    return () => {
+      mounted = false;
+      unsubscribe?.();
+    };
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) return { success: false, error: data.error };
-
-      setToken(data.token);
-      setUser(data.user);
-      localStorage.setItem("studybuddy_token", data.token);
-      localStorage.setItem("studybuddy_user", JSON.stringify(data.user));
+      const supabase = createSupabaseClient();
+      if (!supabase) return { success: false, error: "Supabase not configured" };
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) return { success: false, error: error.message };
       return { success: true };
     } catch {
       return { success: false, error: "Network error" };
@@ -114,44 +142,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = useCallback(async (userData: RegisterData) => {
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userData),
+      const supabase = createSupabaseClient();
+      if (!supabase) return { success: false, error: "Supabase not configured" };
+      const { error } = await supabase.auth.signUp({
+        email: userData.email,
+        password: userData.password,
+        options: { data: { full_name: userData.name } },
       });
-
-      const data = await res.json();
-      if (!res.ok) return { success: false, error: data.error };
-
-      setToken(data.token);
-      setUser(data.user);
-      localStorage.setItem("studybuddy_token", data.token);
-      localStorage.setItem("studybuddy_user", JSON.stringify(data.user));
+      if (error) return { success: false, error: error.message };
       return { success: true };
     } catch {
       return { success: false, error: "Network error" };
     }
   }, []);
 
-  const logout = useCallback(() => {
-    setToken(null);
+  const logout = useCallback(async () => {
+    const supabase = createSupabaseClient();
+    if (supabase) await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem("studybuddy_token");
-    localStorage.removeItem("studybuddy_user");
+    setSession(null);
   }, []);
 
   const updateUser = useCallback((data: Partial<User>) => {
     setUser((prev) => prev ? { ...prev, ...data } : prev);
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("studybuddy_user");
-      if (stored) {
-        localStorage.setItem("studybuddy_user", JSON.stringify({ ...JSON.parse(stored), ...data }));
-      }
-    }
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, updateUser, isLoading }}>
+    <AuthContext.Provider value={{ user, session, login, register, logout, updateUser, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

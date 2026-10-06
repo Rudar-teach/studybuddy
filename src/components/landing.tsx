@@ -6,7 +6,7 @@ import { BookOpen, Users, Sparkles, ArrowRight, Play, GitBranch, Star, ChevronDo
 import Link from "next/link";
 
 export function LandingPage() {
-  const { navigateTo } = useApp();
+  const { navigateTo, user } = useApp();
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {

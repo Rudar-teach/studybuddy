@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyToken, getUserById } from "@/lib/auth";
+import { getUserFromRequest } from "@/lib/auth-middleware";
 import { getRequestById, updateRequestStatus } from "@/lib/requests";
 
 export async function POST(
@@ -7,21 +7,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const token = authHeader.substring(7);
-    const payload = verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
-    const user = getUserById(payload.userId);
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
+    const userOrError = await getUserFromRequest(request);
+    if (userOrError instanceof Response) return userOrError;
+    const user = userOrError;
 
     const { id } = await params;
     const req = getRequestById(id);

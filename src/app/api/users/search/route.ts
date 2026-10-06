@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyToken, getUserById, getAllUsers } from "@/lib/auth";
+import { getAllUsers } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
@@ -8,19 +8,8 @@ export async function GET(request: Request) {
     const subject = searchParams.get("subject") || "";
 
     const allUsers = getAllUsers();
-    const currentUserId = request.headers.get("authorization")?.startsWith("Bearer ")
-      ? verifyToken(request.headers.get("authorization")!.substring(7))?.userId
-      : null;
 
     let filtered = allUsers;
-
-    if (currentUserId) {
-      filtered = filtered.filter((u) => u.id !== currentUserId);
-    }
-
-    if (subject) {
-      filtered = filtered.filter((u) => u.subjects.some((s) => s.toLowerCase().includes(subject.toLowerCase())));
-    }
 
     if (query) {
       filtered = filtered.filter(
@@ -30,6 +19,10 @@ export async function GET(request: Request) {
           u.subjects.some((s) => s.toLowerCase().includes(query)) ||
           u.skills.some((s) => s.name.toLowerCase().includes(query))
       );
+    }
+
+    if (subject) {
+      filtered = filtered.filter((u) => u.subjects.some((s) => s.toLowerCase().includes(subject.toLowerCase())));
     }
 
     const results = filtered.map(({ password, ...u }) => u);

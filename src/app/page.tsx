@@ -15,16 +15,32 @@ import { RequestsPage } from "@/components/requests";
 import { ToastContainer } from "@/components/toast";
 import { LoadingScreen } from "@/components/loading";
 
+// Pages that require authentication
+const AUTHED_PAGES = new Set([
+  "dashboard", "profile", "browse", "matches",
+  "groups", "group-detail", "projects", "requests",
+]);
+
 function AppContent() {
-  const { user, isLoading, currentPage } = useApp();
+  const { user, isLoading, currentPage, navigateTo } = useApp();
+
+  // Redirect unauthenticated users away from authed pages
+  useEffect(() => {
+    if (!user && !isLoading && AUTHED_PAGES.has(currentPage)) {
+      navigateTo("login");
+    }
+  }, [user, isLoading, currentPage, navigateTo]);
 
   if (isLoading) {
     return <LoadingScreen />;
   }
 
+  // Not logged in — show public pages only
   if (!user) {
     if (currentPage === "register") return <RegisterPage />;
-    return <LoginPage />;
+    if (currentPage === "login") return <LoginPage />;
+    // Default public page = landing
+    return <LandingPage />;
   }
 
   // Authenticated routes

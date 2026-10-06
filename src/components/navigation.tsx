@@ -86,11 +86,9 @@ export function Navigation() {
                   onClick={() => setShowUserMenu(!showUserMenu)}
                   className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/5 transition-all"
                 >
-                  <img
-                    src={user?.avatar}
-                    alt={user?.name}
-                    className="w-8 h-8 rounded-full border-2 border-indigo-500/30"
-                  />
+                  <div className="w-8 h-8 rounded-full border-2 border-indigo-500/30 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                    {user?.name?.charAt(0)?.toUpperCase() || "?"}
+                  </div>
                   <span className="text-sm font-medium text-slate-300 hidden lg:block">
                     {user?.name?.split(" ")[0]}
                   </span>
