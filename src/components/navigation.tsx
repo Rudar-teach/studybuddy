@@ -1,7 +1,7 @@
 "use client";
 
 import { useApp } from "./providers";
-import { BookOpen, Users, FolderOpen, User, Home, Menu, X, Bell, LogOut, Sparkles, Search } from "lucide-react";
+import { BookOpen, Users, FolderOpen, User, Home, Menu, X, Bell, LogOut, Sparkles, Search, Moon, Sun } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 
@@ -15,9 +15,12 @@ const navItems = [
 ];
 
 export function Navigation() {
-  const { user, currentPage, navigateTo, logout, notifications } = useApp();
+  const { user, currentPage, navigateTo, logout, notifications, theme, toggleTheme } = useApp();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+
+  // Apply theme to root so CSS vars switch
+  const ThemeIcon = theme === "dark" ? Moon : Sun;
 
   const unreadCount = notifications.length;
 
@@ -69,6 +72,14 @@ export function Navigation() {
 
             {/* Right side */}
             <div className="flex items-center gap-3">
+              <button
+                onClick={toggleTheme}
+                title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all"
+              >
+                <ThemeIcon className="w-5 h-5" />
+              </button>
+
               <button
                 onClick={() => navigateTo("requests")}
                 className="relative p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all"
@@ -158,6 +169,13 @@ export function Navigation() {
           <span className="font-bold gradient-text">StudyBuddy</span>
         </button>
         <div className="flex items-center gap-2">
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-lg text-slate-400"
+            title="Toggle theme"
+          >
+            <ThemeIcon className="w-5 h-5" />
+          </button>
           <button
             onClick={() => navigateTo("requests")}
             className="relative p-2 rounded-lg text-slate-400"

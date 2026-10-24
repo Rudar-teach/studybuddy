@@ -9,6 +9,10 @@ interface Database {
   projects: any[];
   collaboration_requests: any[];
   messages: any[];
+  group_sessions: any[];
+  group_resources: any[];
+  group_checkins: any[];
+  user_reports: any[];
 }
 
 function readDb(): Database {
@@ -26,6 +30,10 @@ function readDb(): Database {
     projects: [],
     collaboration_requests: [],
     messages: [],
+    group_sessions: [],
+    group_resources: [],
+    group_checkins: [],
+    user_reports: [],
   };
 }
 

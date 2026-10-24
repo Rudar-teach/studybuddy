@@ -49,3 +49,5 @@ next-env.d.ts
 
 # User-uploaded files
 /public/uploads/
+dev-server.log
+next.config.ts

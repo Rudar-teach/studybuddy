@@ -3,8 +3,18 @@
 import { useEffect, useState, useCallback } from "react";
 import { useApp } from "./providers";
 import { Navigation } from "./navigation";
-import { Search, Filter, User, BookOpen, Award, Mail, Users, ChevronRight } from "lucide-react";
+import { Search, Filter, User, BookOpen, Award, Mail, Users, ChevronRight, Share2 } from "lucide-react";
+import { relativeTime, isActiveLastWeek } from "@/lib/utils";
 import Link from "next/link";
+
+function userShareSummary(u: any): string {
+  return [
+    `${u.name} (${u.major || "Student"})`,
+    u.subjects?.length ? `Studies: ${u.subjects.join(", ")}` : "",
+    u.skills?.length ? `Skills: ${u.skills.map((s: any) => s.name).join(", ")}` : "",
+    u.learningGoals?.length ? `Goals: ${u.learningGoals.join(", ")}` : "",
+  ].filter(Boolean).join(" | ");
+}
 
 export function BrowsePage() {
   const { navigateTo, addNotification } = useApp();
@@ -171,9 +181,22 @@ export function BrowsePage() {
                       <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#1e293b]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-white truncate">{user.name}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-white truncate">{user.name}</h3>
+                        {isActiveLastWeek(user.lastActiveAt || user.createdAt) && (
+                          <span
+                            title="Active this week"
+                            className="w-2 h-2 rounded-full bg-emerald-400 shrink-0"
+                          />
+                        )}
+                      </div>
                       <p className="text-sm text-slate-400">{user.major || "No major"}</p>
-                      <p className="text-xs text-slate-500 capitalize">{user.year?.replace("-", " ")}</p>
+                      <div className="flex items-center gap-2 text-xs text-slate-500">
+                        <span className="capitalize">{user.year?.replace("-", " ")}</span>
+                        {(user.lastActiveAt || user.createdAt) && (
+                          <span>· {relativeTime(user.lastActiveAt || user.createdAt)}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -218,6 +241,20 @@ export function BrowsePage() {
                     >
                       <BookOpen className="w-3.5 h-3.5" />
                       Collaborate
+                    </button>
+                    <button
+                      onClick={() => {
+                        const text = encodeURIComponent(userShareSummary(user));
+                        const url = `${window.location.origin}?ref=${encodeURIComponent(user.id)}`;
+                        navigator.clipboard?.writeText(`${url}\n${text}`).then(
+                          () => addNotification({ type: "success", title: "Link Copied", message: "Share link copied to clipboard." }),
+                          () => addNotification({ type: "error", title: "Copy Failed", message: "Could not copy to clipboard." }),
+                        );
+                      }}
+                      title="Copy share link for this person"
+                      className="px-3 py-2 rounded-lg text-slate-400 hover:text-indigo-300 hover:bg-indigo-500/10 border border-slate-700/50 transition-colors"
+                    >
+                      <Share2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>

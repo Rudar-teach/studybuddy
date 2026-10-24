@@ -20,6 +20,9 @@ export function LoginPage() {
     const result = await login(email, password);
     if (!result.success) {
       setError(result.error || "Login failed");
+    } else {
+      // Return to the dashboard; onboarding gate surfaces if the profile is incomplete
+      navigateTo("dashboard");
     }
     setLoading(false);
   };
@@ -142,6 +145,10 @@ export function RegisterPage() {
     const result = await register({ name, email, password });
     if (!result.success) {
       setError(result.error || "Registration failed");
+    } else {
+      // Send new users to the dashboard, where the onboarding wizard (feature 11)
+      // greets them and nudges them to complete their profile for better matches.
+      navigateTo("dashboard");
     }
     setLoading(false);
   };

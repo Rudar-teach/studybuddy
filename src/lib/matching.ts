@@ -90,15 +90,33 @@ function timeOverlapMinutes(
 export function getTopMatches(
   currentUser: User,
   allUsers: User[],
-  limit = 10
+  limit = 10,
+  options?: { excludeIds?: string[]; minScore?: number }
 ): MatchScore[] {
-  const others = allUsers.filter((u) => u.id !== currentUser.id);
+  const minScore = options?.minScore ?? 20;
+  const exclude = new Set(options?.excludeIds || []);
+  const others = allUsers.filter((u) => u.id !== currentUser.id && !exclude.has(u.id));
   const scores = others
     .map((u) => calculateMatchScore(currentUser, u))
-    .filter((s) => s.score > 20)
+    .filter((s) => s.score >= minScore)
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
   return scores;
+}
+
+// ===== Mutual / reciprocal matches (feature 4) =====
+export function getMutualMatchIds(currentUser: User, allUsers: User[], threshold = 60): Set<string> {
+  const mutual = new Set<string>();
+  for (const candidate of allUsers) {
+    if (candidate.id === currentUser.id) continue;
+    if (
+      calculateMatchScore(currentUser, candidate).score >= threshold &&
+      calculateMatchScore(candidate, currentUser).score >= threshold
+    ) {
+      mutual.add(candidate.id);
+    }
+  }
+  return mutual;
 }
 
 export function getCompatibleStudyPartners(

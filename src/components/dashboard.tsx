@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useApp } from "./providers";
 import { Navigation } from "./navigation";
+import { OnboardingGate } from "./Onboarding";
+import { profileCompleteness, avatarColor, avatarInitials } from "@/lib/utils";
 import {
   Users, BookOpen, FolderOpen, TrendingUp, Clock, Award,
   ChevronRight, Sparkles, MessageSquare, Calendar,
@@ -14,10 +16,17 @@ export function Dashboard() {
   const { user, navigateTo, groups, setGroups, projects, setProjects, requests, addNotification } = useApp();
   const [stats, setStats] = useState({ groups: 0, projects: 0, matches: 0, requests: 0 });
   const [loading, setLoading] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  const completeness = user ? profileCompleteness(user) : null;
 
   useEffect(() => {
     loadDashboardData();
-  }, []);
+    // Show onboarding when profile is meaningfully incomplete (feature 11)
+    if (user && profileCompleteness(user).percent < 100) {
+      setShowOnboarding(true);
+    }
+  }, [user]);
 
   const loadDashboardData = async () => {
     try {
@@ -106,6 +115,18 @@ export function Dashboard() {
             Ready to find your next study partner?
           </p>
         </div>
+
+        {/* Onboarding gate (feature 11) */}
+        {showOnboarding && completeness && completeness.percent < 100 && (
+          <OnboardingGate
+            user={user!}
+            onComplete={() => setShowOnboarding(false)}
+            onContinue={() => {
+              setShowOnboarding(false);
+              navigateTo("profile");
+            }}
+          />
+        )}
 
         {loading ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -209,17 +230,39 @@ export function Dashboard() {
                 <div className="glass rounded-2xl p-6 border border-slate-700/50 animate-slide-in-right">
                   <h3 className="text-lg font-semibold text-white mb-4">Your Profile</h3>
                   <div className="flex items-center gap-4 mb-4">
-                    <img
-                      src={user?.avatar}
-                      alt={user?.name}
-                      className="w-14 h-14 rounded-full border-2 border-indigo-500/30"
-                    />
+                    <div
+                      className={`w-14 h-14 rounded-full bg-gradient-to-br ${user ? avatarColor(user.email) : "from-indigo-500 to-purple-600"} flex items-center justify-center text-white font-bold text-xl`}
+                    >
+                      {avatarInitials(user?.name)}
+                    </div>
                     <div>
                       <h4 className="font-medium text-white">{user?.name}</h4>
                       <p className="text-sm text-slate-400">{user?.major || "No major set"}</p>
                       <p className="text-xs text-slate-500 capitalize">{user?.year?.replace("-", " ")}</p>
                     </div>
                   </div>
+
+                  {/* Profile completeness meter (feature 8) */}
+                  {completeness && (
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between text-xs mb-1.5">
+                        <span className="text-slate-400">Profile completeness</span>
+                        <span className="text-indigo-300 font-medium">{completeness.percent}%</span>
+                      </div>
+                      <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-500"
+                          style={{ width: `${completeness.percent}%` }}
+                        />
+                      </div>
+                      {completeness.missing.length > 0 && (
+                        <p className="text-[11px] text-slate-500 mt-1.5">
+                          Add: {completeness.missing.join(", ")}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   <button
                     onClick={() => navigateTo("profile")}
                     className="btn-glass w-full py-2.5 rounded-xl text-sm font-medium"

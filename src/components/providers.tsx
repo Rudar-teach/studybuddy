@@ -88,6 +88,16 @@ interface Notification {
   timestamp: number;
 }
 
+function applyTheme(theme: "dark" | "light") {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  if (theme === "dark") {
+    root.setAttribute("data-theme", "dark");
+  } else {
+    root.setAttribute("data-theme", "light");
+  }
+}
+
 const AuthContext = createContext<AuthContextType | null>(null);
 const AppContext = createContext<AppContextType | null>(null);
 
@@ -206,8 +216,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setTheme((prev) => prev === "dark" ? "light" : "dark");
+    setTheme((prev) => {
+      const next = prev === "dark" ? "light" : "dark";
+      applyTheme(next);
+      return next;
+    });
   }, []);
+
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
 
   return (
     <AppContext.Provider

@@ -12,6 +12,8 @@ export interface User {
   year: string;
   major: string;
   createdAt: string;
+  lastActiveAt?: string;
+  blocklist?: string[];
 }
 
 export interface Skill {
@@ -74,6 +76,48 @@ export interface Message {
 }
 
 export type ChatMessage = Message;
+
+// ===== Sessions / resources / check-ins / reports (features 5, 6, 7, 9) =====
+export interface GroupSession {
+  id: string;
+  groupId: string;
+  day: "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
+  time: string;
+  topic: string;
+  link: string;
+  hostId: string;
+  rsvps: string[];
+  createdAt: string;
+}
+
+export interface GroupResource {
+  id: string;
+  groupId: string;
+  title: string;
+  url: string;
+  type: "link" | "file" | "note";
+  note?: string;
+  addedBy: string;
+  createdAt: string;
+}
+
+export interface GroupCheckin {
+  id: string;
+  groupId: string;
+  userId: string;
+  status: "done" | "in-progress" | "blocked";
+  note: string;
+  createdAt: string;
+}
+
+export interface UserReport {
+  id: string;
+  reporterId: string;
+  reportedUserId: string;
+  reason: string;
+  details: string;
+  createdAt: string;
+}
 
 export interface MatchScore {
   userId: string;

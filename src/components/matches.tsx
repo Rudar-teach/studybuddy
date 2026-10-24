@@ -3,12 +3,14 @@
 import { useEffect, useState, useCallback } from "react";
 import { useApp } from "./providers";
 import { Navigation } from "./navigation";
-import { Sparkles, TrendingUp, Users, Mail, BookOpen, Award, ChevronRight, Star, Zap, ArrowRight, Clock } from "lucide-react";
+import { Sparkles, TrendingUp, Users, Mail, BookOpen, Award, ChevronRight, Star, Zap, ArrowRight, Clock, Heart, Flag } from "lucide-react";
 
 export function MatchesPage() {
-  const { navigateTo, user, addNotification, setMatches } = useApp();
+  const { navigateTo, user, addNotification, setMatches, logout } = useApp();
   const [matches, setLocalMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<"all" | "mutual" | "high" | "available">("all");
+  const [reported, setReported] = useState<Record<string, boolean>>({});
 
   const loadMatches = useCallback(async () => {
     try {
@@ -19,8 +21,9 @@ export function MatchesPage() {
 
       if (res.ok) {
         const data = await res.json();
-        setLocalMatches(data.matches || []);
-        setMatches(data.matches || []);
+        const list = data.matches || [];
+        setLocalMatches(list);
+        setMatches(list);
       }
     } catch (error) {
       console.error("Matches error:", error);
@@ -32,6 +35,45 @@ export function MatchesPage() {
   useEffect(() => {
     loadMatches();
   }, [loadMatches]);
+
+  const filtered = matches.filter((m) => {
+    if (filter === "mutual") return m.mutual;
+    if (filter === "high") return m.score >= 80;
+    if (filter === "available") return m.user?.activeThisWeek;
+    return true;
+  });
+
+  const mutualCount = matches.filter((m) => m.mutual).length;
+
+  const handleReport = async (userId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const reason = window.prompt(
+      "Why are you reporting this user?\n(spam, harassment, fake, other)"
+    );
+    if (!reason) return;
+    const details = window.prompt("Add details (optional)") || "";
+    const block = window.confirm("Block this user so they stop appearing in your matches?") ? "yes" : "no";
+    try {
+      const token = localStorage.getItem("studybuddy_token");
+      const res = await fetch("/api/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ reportedUserId: userId, reason, details, block: block === "yes" }),
+      });
+      if (res.ok) {
+        setReported((prev) => ({ ...prev, [userId]: true }));
+        addNotification({
+          type: "success",
+          title: "Reported",
+          message: block === "yes" ? "User reported and blocked." : "User reported. Thank you.",
+        });
+        // Reload to hide blocked users
+        loadMatches();
+      }
+    } catch {
+      addNotification({ type: "error", title: "Error", message: "Failed to report user" });
+    }
+  };
 
   const handleSendRequest = async (targetUser: any) => {
     try {
@@ -119,6 +161,30 @@ export function MatchesPage() {
           </div>
         </div>
 
+        {/* Filters (feature 2) */}
+        <div className="mt-8 flex flex-wrap gap-3 animate-slide-up stagger-2">
+          {(
+            [
+              { id: "all", label: "All Matches" },
+              { id: "mutual", label: `Mutual (${mutualCount})` },
+              { id: "high", label: "80%+" },
+              { id: "available", label: "Active This Week" },
+            ] as const
+          ).map((f) => (
+            <button
+              key={f.id}
+              onClick={() => setFilter(f.id)}
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                filter === f.id
+                  ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                  : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
         {/* Matches Grid */}
         <div className="mt-8">
           {loading ? (
@@ -140,9 +206,15 @@ export function MatchesPage() {
                 Complete Profile
               </button>
             </div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-20">
+              <Sparkles className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-slate-400 mb-2">No matches in this view</h3>
+              <p className="text-sm text-slate-500">Try a different filter.</p>
+            </div>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {matches.map((match, i) => {
+              {filtered.map((match, i) => {
                 const matchUser = match.user;
                 return (
                   <div
@@ -156,16 +228,32 @@ export function MatchesPage() {
                         <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${getScoreColor(match.score)} flex items-center justify-center`}>
                           <span className="text-xl font-bold text-white">{match.score}%</span>
                         </div>
-                        <div className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-full bg-slate-800 border border-slate-700">
-                          <TrendingUp className="w-3 h-3 text-emerald-400" />
-                        </div>
+                        {matchUser.activeThisWeek && (
+                          <span
+                            title="Active this week"
+                            className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-[#0f172a]"
+                          />
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-white truncate">{matchUser.name}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-white truncate">{matchUser.name}</h3>
+                          {match.mutual && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-medium flex items-center gap-1">
+                              <Heart className="w-3 h-3" />
+                              Mutual
+                            </span>
+                          )}
+                        </div>
                         <p className="text-sm text-slate-400">{matchUser.major || "Student"}</p>
-                        <span className={`text-xs px-2 py-0.5 rounded-full bg-gradient-to-r ${getScoreColor(match.score)} text-white font-medium`}>
-                          {getScoreLabel(match.score)}
-                        </span>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={`text-xs px-2 py-0.5 rounded-full bg-gradient-to-r ${getScoreColor(match.score)} text-white font-medium`}>
+                            {getScoreLabel(match.score)}
+                          </span>
+                          {matchUser.lastActiveLabel && (
+                            <span className="text-[11px] text-slate-500">{matchUser.lastActiveLabel}</span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -191,13 +279,22 @@ export function MatchesPage() {
                     )}
 
                     {/* Action */}
-                    <button
-                      onClick={() => handleSendRequest(match)}
-                      className="btn-primary w-full py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2"
-                    >
-                      <Mail className="w-4 h-4" />
-                      Connect
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleSendRequest(match)}
+                        className="btn-primary flex-1 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2"
+                      >
+                        <Mail className="w-4 h-4" />
+                        Connect
+                      </button>
+                      <button
+                        onClick={(e) => handleReport(matchUser.id, e)}
+                        title="Report this user"
+                        className="px-3 py-2.5 rounded-xl text-sm text-slate-400 hover:text-red-400 hover:bg-red-500/10 border border-slate-700/50 transition-colors"
+                      >
+                        <Flag className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 );
               })}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useApp } from "./providers";
 import { Navigation } from "./navigation";
+import { profileCompleteness } from "@/lib/utils";
 import {
   User, BookOpen, Award, Calendar, Clock, Save,
   Plus, X, Check, ChevronDown, Settings, Target,
@@ -158,6 +159,20 @@ export function ProfilePage() {
         <div className="animate-slide-up">
           <h1 className="text-3xl font-bold mb-2">Your Profile</h1>
           <p className="text-slate-400">Customize your profile to get better matches</p>
+
+          {/* Completeness meter (feature 8) */}
+          <div className="mt-5 max-w-sm">
+            <div className="flex items-center justify-between text-xs mb-1.5">
+              <span className="text-slate-400">Profile completeness</span>
+              <span className="text-indigo-300 font-medium">{profileCompleteness(formData).percent}%</span>
+            </div>
+            <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-500"
+                style={{ width: `${profileCompleteness(formData).percent}%` }}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Tabs */}
