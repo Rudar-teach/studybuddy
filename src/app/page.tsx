@@ -22,7 +22,7 @@ const AUTHED_PAGES = new Set([
 ]);
 
 function AppContent() {
-  const { user, isLoading, currentPage, navigateTo } = useApp();
+  const { user, isLoading, currentPage, navigateTo, providerError } = useApp();
 
   // Redirect unauthenticated users away from authed pages
   useEffect(() => {
@@ -31,8 +31,12 @@ function AppContent() {
     }
   }, [user, isLoading, currentPage, navigateTo]);
 
-  if (isLoading) {
+  if (isLoading && !providerError) {
     return <LoadingScreen />;
+  }
+
+  if (providerError) {
+    return <LoadingScreen failed />;
   }
 
   // Not logged in — show public pages only

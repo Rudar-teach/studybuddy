@@ -9,32 +9,42 @@ import {
   updateDoc,
   deleteDoc,
   type DocumentData,
-  type QueryDocumentSnapshot,
+  type Firestore,
 } from "firebase/firestore";
 
-// Server-side Firebase config. NEXT_PUBLIC_* vars are baked into the client bundle,
-// so admin-only access is enforced via the ADMIN_KEYS env var (server process only).
-const app =
-  getApps()[0] ||
-  initializeApp({
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  });
-
-export const db = getFirestore(app);
-
-export function isFirebaseConfigured(): boolean {
+/**
+ * Firebase config is optional: the Firestore data provider is only active
+ * when NEXT_PUBLIC_FIREBASE_* env vars are present. Everything in this
+ * module is guarded so importing it without config never throws.
+ */
+function isFirebaseConfigured(): boolean {
   return Boolean(
     process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
     process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
   );
 }
 
+export { isFirebaseConfigured };
+
+let db: Firestore | null = null;
+function getDb(): Firestore {
+  if (!db) {
+    const app =
+      getApps()[0] ||
+      initializeApp({
+        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+      });
+    db = getFirestore(app);
+  }
+  return db;
+}
+
 export async function getAll(table: string): Promise<DocumentData[]> {
-  const snap = await getDocs(collection(db, table));
+  const snap = await getDocs(collection(getDb(), table));
   return snap.docs.map((d) => d.data());
 }
 
@@ -44,25 +54,23 @@ export interface Row<T = DocumentData> {
 }
 
 export async function getAllWithIds<T = DocumentData>(table: string): Promise<Row<T>[]> {
-  const snap = await getDocs(collection(db, table));
+  const snap = await getDocs(collection(getDb(), table));
   return snap.docs.map((d) => ({ id: d.id, data: d.data() as T }));
 }
 
 export async function getOne(table: string, id: string): Promise<DocumentData | null> {
-  const snap = await getDoc(doc(db, table, id));
+  const snap = await getDoc(doc(getDb(), table, id));
   return snap.exists() ? snap.data() : null;
 }
 
 export async function putDoc(table: string, id: string, data: DocumentData): Promise<void> {
-  await setDoc(doc(db, table, id), data);
+  await setDoc(doc(getDb(), table, id), data);
 }
 
 export async function patchDoc(table: string, id: string, data: DocumentData): Promise<void> {
-  await updateDoc(doc(db, table, id), data);
+  await updateDoc(doc(getDb(), table, id), data);
 }
 
 export async function removeDoc(table: string, id: string): Promise<void> {
-  await deleteDoc(doc(db, table, id));
+  await deleteDoc(doc(getDb(), table, id));
 }
-
-export type { QueryDocumentSnapshot };

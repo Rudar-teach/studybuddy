@@ -56,6 +56,7 @@ interface AuthContextType {
   logout: () => void;
   updateUser: (data: Partial<User>) => void;
   isLoading: boolean;
+  providerError: boolean;
 }
 
 interface RegisterData {
@@ -72,6 +73,7 @@ interface AppContextType {
   logout: () => void;
   updateUser: (data: Partial<User>) => void;
   isLoading: boolean;
+  providerError: boolean;
 
   currentPage: string;
   navigateTo: (page: string) => void;
@@ -120,33 +122,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [providerError, setProviderError] = useState(false);
 
   useEffect(() => {
     let mounted = true;
     let unsubscribe: (() => void) | null = null;
 
     (async () => {
-      const supabase = createSupabaseClient();
-      if (!supabase) {
-        if (mounted) setIsLoading(false);
-        return;
-      }
+      try {
+        const supabase = createSupabaseClient();
+        if (!supabase) {
+          if (mounted) setIsLoading(false);
+          return;
+        }
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!mounted) return;
-      setSession(session);
-      syncSupabaseToken(session);
-      if (session?.user) setUser(userFromSession(session));
-      setIsLoading(false);
-
-      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { session } } = await supabase.auth.getSession();
         if (!mounted) return;
         setSession(session);
         syncSupabaseToken(session);
         if (session?.user) setUser(userFromSession(session));
-        else setUser(null);
-      });
-      unsubscribe = () => data.subscription.unsubscribe();
+        setIsLoading(false);
+
+        const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+          if (!mounted) return;
+          setSession(session);
+          syncSupabaseToken(session);
+          if (session?.user) setUser(userFromSession(session));
+          else setUser(null);
+        });
+        unsubscribe = () => data.subscription.unsubscribe();
+      } catch (err) {
+        if (mounted) {
+          console.error("Auth init failed:", err);
+          setProviderError(true);
+          setIsLoading(false);
+        }
+      }
     })();
 
     return () => {
@@ -196,7 +207,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, session, login, register, logout, updateUser, isLoading }}>
+    <AuthContext.Provider value={{ user, session, login, register, logout, updateUser, isLoading, providerError }}>
       {children}
     </AuthContext.Provider>
   );

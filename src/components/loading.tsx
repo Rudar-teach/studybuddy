@@ -1,11 +1,36 @@
-export function LoadingScreen() {
+export function LoadingScreen({ failed = false }: { failed?: boolean }) {
   return (
     <div className="fixed inset-0 bg-[#082336] flex items-center justify-center z-50">
-      <div className="relative">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-r from-teal-500 via-cyan-500 to-cyan-500 animate-spin-slow" style={{ mask: "radial-gradient(farthest-side, transparent calc(100% - 6px), #fff calc(100% - 6px))", WebkitMask: "radial-gradient(farthest-side, transparent calc(100% - 6px), #fff calc(100% - 6px))" }} />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-2xl font-bold gradient-text">SB</span>
-        </div>
+      <div className="text-center px-6">
+        {!failed && (
+          <>
+            <div className="relative w-20 h-20 mx-auto mb-5">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-r from-teal-500 via-cyan-500 to-cyan-500 animate-spin-slow" style={{ mask: "radial-gradient(farthest-side, transparent calc(100% - 6px), #fff calc(100% - 6px))", WebkitMask: "radial-gradient(farthest-side, transparent calc(100% - 6px), #fff calc(100% - 6px))" }} />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-2xl font-bold gradient-text">SB</span>
+              </div>
+            </div>
+            <p className="text-sm text-slate-400">Loading...</p>
+          </>
+        )}
+        {failed && (
+          <>
+            <p className="text-slate-200 font-medium mb-2">
+              Loading failed
+            </p>
+            <p className="text-sm text-slate-400 mb-6">
+              Something went wrong while starting the app. Check the browser
+              console and your Supabase / Firebase environment variables, then
+              refresh.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="btn-primary px-6 py-3 rounded-xl text-sm font-medium"
+            >
+              Reload
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
