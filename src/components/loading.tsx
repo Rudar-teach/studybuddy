@@ -8,7 +8,8 @@ export function LoadingScreen() {
             <span className="text-2xl font-bold gradient-text">SB</span>
           </div>
         </div>
-        <p className="text-sm text-slate-400">Loading...</p>
+        <p className="text-sm text-slate-400 mb-1">Loading...</p>
+        <p data-loading-marker="studybuddy-loading-v3" className="text-[10px] text-slate-600">v3</p>
       </div>
     </div>
   );

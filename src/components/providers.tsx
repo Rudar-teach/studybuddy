@@ -121,7 +121,7 @@ const AppContext = createContext<AppContextType | null>(null);
 // Hard ceiling so the app can NEVER be blocked on auth init: if the session
 // lookup is still pending after this many ms, stop waiting and render the
 // app as signed-out. Sign-in still works afterwards.
-const AUTH_INIT_TIMEOUT_MS = 4000;
+const AUTH_INIT_TIMEOUT_MS = 6000;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -144,7 +144,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Safety net: no matter what happens (network hang, SDK quirk, storage
     // prompt), the loading screen can never block the app forever.
     const timeout = window.setTimeout(() => {
-      console.warn("Auth init timed out; continuing without a session.");
+      if (process.env.NODE_ENV === "development") {
+        console.warn("Auth init timed out; continuing without a session.");
+      }
       settle(true);
     }, AUTH_INIT_TIMEOUT_MS);
 
@@ -156,20 +158,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        // getSession() is the one call that can hang on a bad URL; race it
-        // against a timer so it cannot hold the app hostage.
-        const raced = await Promise.race([
-          supabase.auth.getSession(),
-          new Promise((resolve) =>
-            setTimeout(() => resolve({ data: { session: null } }), AUTH_INIT_TIMEOUT_MS - 500)
-          ),
-        ]);
-        const data = raced as { data: { session: any | null } };
+        // getSession() can hang on a bad URL / stale local storage. Race it
+        // against a timer, and if it throws, fall through to the timeout.
+        let sessionData: any = null;
+        try {
+          const raced = await Promise.race([
+            supabase.auth.getSession(),
+            new Promise((resolve) =>
+              setTimeout(() => resolve(null), AUTH_INIT_TIMEOUT_MS - 800)
+            ),
+          ]);
+          sessionData = (raced as any)?.data?.session ?? null;
+        } catch {
+          sessionData = null;
+        }
         if (!mounted) return;
-        const s = data.data.session;
-        setSession(s);
-        syncSupabaseToken(s);
-        if (s?.user) setUser(userFromSession(s));
+        setSession(sessionData);
+        syncSupabaseToken(sessionData);
+        if (sessionData?.user) setUser(userFromSession(sessionData));
         settle(false);
 
         const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
@@ -181,7 +187,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
         unsubscribe = () => sub?.subscription?.unsubscribe?.();
       } catch (err) {
-        console.error("Auth init failed:", err);
+        if (process.env.NODE_ENV === "development") {
+          console.error("Auth init failed:", err);
+        }
         if (mounted) settle(true);
       } finally {
         window.clearTimeout(timeout);
