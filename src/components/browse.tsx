@@ -106,7 +106,7 @@ export function BrowsePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a]">
+    <div className="min-h-screen bg-[#082336]">
       <Navigation />
 
       <main className="pt-20 md:pt-24 pb-24 md:pb-8 px-4 md:px-6 max-w-7xl mx-auto">
@@ -176,9 +176,9 @@ export function BrowsePage() {
                       <img
                         src={user.avatar}
                         alt={user.name}
-                        className="w-14 h-14 rounded-full border-2 border-indigo-500/20"
+                        className="w-14 h-14 rounded-full border-2 border-teal-500/20"
                       />
-                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#1e293b]" />
+                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#082336]" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
@@ -252,7 +252,7 @@ export function BrowsePage() {
                         );
                       }}
                       title="Copy share link for this person"
-                      className="px-3 py-2 rounded-lg text-slate-400 hover:text-indigo-300 hover:bg-indigo-500/10 border border-slate-700/50 transition-colors"
+                      className="px-3 py-2 rounded-lg text-slate-400 hover:text-teal-300 hover:bg-teal-500/10 border border-slate-700/50 transition-colors"
                     >
                       <Share2 className="w-3.5 h-3.5" />
                     </button>

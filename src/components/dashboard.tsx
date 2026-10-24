@@ -62,23 +62,23 @@ export function Dashboard() {
       title: "Study Groups",
       value: groups.length,
       icon: Users,
-      color: "from-indigo-500 to-blue-600",
-      bgColor: "bg-indigo-500/10",
+      color: "from-teal-500 to-cyan-600",
+      bgColor: "bg-teal-500/10",
       action: () => navigateTo("groups"),
     },
     {
       title: "Projects",
       value: projects.length,
       icon: FolderOpen,
-      color: "from-purple-500 to-pink-600",
-      bgColor: "bg-purple-500/10",
+      color: "from-cyan-500 to-pink-600",
+      bgColor: "bg-cyan-500/10",
       action: () => navigateTo("projects"),
     },
     {
       title: "Subjects",
       value: user?.subjects?.length || 0,
       icon: BookOpen,
-      color: "from-cyan-500 to-blue-600",
+      color: "from-cyan-500 to-cyan-600",
       bgColor: "bg-cyan-500/10",
       action: () => navigateTo("profile"),
     },
@@ -93,14 +93,14 @@ export function Dashboard() {
   ];
 
   const quickActions = [
-    { title: "Find Study Partners", desc: "Browse and match with students", icon: Users, action: "browse", color: "from-indigo-500 to-blue-600" },
-    { title: "Create Study Group", desc: "Start a new group", icon: Plus, action: "groups", color: "from-purple-500 to-pink-600" },
+    { title: "Find Study Partners", desc: "Browse and match with students", icon: Users, action: "browse", color: "from-teal-500 to-cyan-600" },
+    { title: "Create Study Group", desc: "Start a new group", icon: Plus, action: "groups", color: "from-cyan-500 to-pink-600" },
     { title: "Post a Project", desc: "Find collaborators", icon: FolderOpen, action: "projects", color: "from-cyan-500 to-teal-600" },
     { title: "View Matches", desc: "Your top compatibility matches", icon: Sparkles, action: "matches", color: "from-amber-500 to-orange-600" },
   ];
 
   return (
-    <div className="min-h-screen bg-[#0f172a]">
+    <div className="min-h-screen bg-[#082336]">
       <Navigation />
 
       <main className="pt-20 md:pt-24 pb-24 md:pb-8 px-4 md:px-6 max-w-7xl mx-auto">
@@ -186,12 +186,12 @@ export function Dashboard() {
                   <div className="animate-slide-up stagger-2">
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                        <Users className="w-5 h-5 text-indigo-400" />
+                        <Users className="w-5 h-5 text-teal-400" />
                         My Study Groups
                       </h2>
                       <button
                         onClick={() => navigateTo("groups")}
-                        className="text-sm text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+                        className="text-sm text-teal-400 hover:text-teal-300 flex items-center gap-1"
                       >
                         View All <ChevronRight className="w-4 h-4" />
                       </button>
@@ -231,7 +231,7 @@ export function Dashboard() {
                   <h3 className="text-lg font-semibold text-white mb-4">Your Profile</h3>
                   <div className="flex items-center gap-4 mb-4">
                     <div
-                      className={`w-14 h-14 rounded-full bg-gradient-to-br ${user ? avatarColor(user.email) : "from-indigo-500 to-purple-600"} flex items-center justify-center text-white font-bold text-xl`}
+                      className={`w-14 h-14 rounded-full bg-gradient-to-br ${user ? avatarColor(user.email) : "from-teal-500 to-cyan-600"} flex items-center justify-center text-white font-bold text-xl`}
                     >
                       {avatarInitials(user?.name)}
                     </div>
@@ -247,11 +247,11 @@ export function Dashboard() {
                     <div className="mb-4">
                       <div className="flex items-center justify-between text-xs mb-1.5">
                         <span className="text-slate-400">Profile completeness</span>
-                        <span className="text-indigo-300 font-medium">{completeness.percent}%</span>
+                        <span className="text-teal-300 font-medium">{completeness.percent}%</span>
                       </div>
                       <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-500"
+                          className="h-full bg-gradient-to-r from-teal-500 to-cyan-400 transition-all duration-500"
                           style={{ width: `${completeness.percent}%` }}
                         />
                       </div>

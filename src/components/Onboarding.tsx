@@ -22,8 +22,8 @@ export function OnboardingGate({ user, onComplete, onContinue }: OnboardingGateP
 
   return (
     <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#0f172a]/90 backdrop-blur-sm" />
-      <div className="relative glass rounded-2xl p-8 border border-indigo-500/20 max-w-lg w-full animate-scale-in">
+      <div className="absolute inset-0 bg-[#082336]/90 backdrop-blur-sm" />
+      <div className="relative glass rounded-2xl p-8 border border-teal-500/20 max-w-lg w-full animate-scale-in">
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-white mb-1">Complete your profile</h2>
           <p className="text-sm text-slate-400">
@@ -31,7 +31,7 @@ export function OnboardingGate({ user, onComplete, onContinue }: OnboardingGateP
           </p>
           <div className="mt-3 h-2 w-full rounded-full bg-white/5 overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-indigo-500 to-cyan-500 transition-all duration-500"
+              className="h-full bg-gradient-to-r from-teal-500 to-cyan-500 transition-all duration-500"
               style={{ width: `${completeness.percent}%` }}
             />
           </div>
@@ -53,7 +53,7 @@ export function OnboardingGate({ user, onComplete, onContinue }: OnboardingGateP
               ) : (
                 <button
                   onClick={onContinue}
-                  className="text-xs text-indigo-400 hover:text-indigo-300 font-medium"
+                  className="text-xs text-teal-400 hover:text-teal-300 font-medium"
                 >
                   Add
                 </button>

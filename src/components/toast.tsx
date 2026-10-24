@@ -13,7 +13,7 @@ const icons = {
 const colors = {
   success: "from-emerald-500/20 to-emerald-600/20 border-emerald-500/30",
   error: "from-red-500/20 to-red-600/20 border-red-500/30",
-  info: "from-blue-500/20 to-blue-600/20 border-blue-500/30",
+  info: "from-cyan-500/20 to-cyan-600/20 border-blue-500/30",
   warning: "from-amber-500/20 to-amber-600/20 border-amber-500/30",
 };
 

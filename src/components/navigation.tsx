@@ -36,8 +36,8 @@ export function Navigation() {
               className="flex items-center gap-3 group cursor-pointer"
             >
               <div className="relative w-10 h-10">
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl rotate-6 group-hover:rotate-12 transition-transform duration-300 opacity-80" />
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan-400 to-indigo-600 rounded-xl flex items-center justify-center">
+                <div className="absolute inset-0 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl rotate-6 group-hover:rotate-12 transition-transform duration-300 opacity-80" />
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-400 to-teal-600 rounded-xl flex items-center justify-center">
                   <BookOpen className="w-5 h-5 text-white" />
                 </div>
               </div>
@@ -54,7 +54,7 @@ export function Navigation() {
                     onClick={() => navigateTo(item.id)}
                     className={`nav-link relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                       isActive
-                        ? "text-indigo-300 bg-indigo-500/10"
+                        ? "text-teal-300 bg-teal-500/10"
                         : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
                     }`}
                   >
@@ -63,7 +63,7 @@ export function Navigation() {
                       <span className="hidden xl:inline">{item.label}</span>
                     </div>
                     {isActive && (
-                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-gradient-to-r from-indigo-400 to-cyan-400 rounded-full" />
+                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-full" />
                     )}
                   </button>
                 );
@@ -97,7 +97,7 @@ export function Navigation() {
                   onClick={() => setShowUserMenu(!showUserMenu)}
                   className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/5 transition-all"
                 >
-                  <div className="w-8 h-8 rounded-full border-2 border-indigo-500/30 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                  <div className="w-8 h-8 rounded-full border-2 border-teal-500/30 bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center text-white font-bold text-sm">
                     {user?.name?.charAt(0)?.toUpperCase() || "?"}
                   </div>
                   <span className="text-sm font-medium text-slate-300 hidden lg:block">
@@ -145,7 +145,7 @@ export function Navigation() {
                 onClick={() => navigateTo(item.id)}
                 className={`flex flex-col items-center gap-0.5 p-2 rounded-lg transition-all ${
                   isActive
-                    ? "text-indigo-300"
+                    ? "text-teal-300"
                     : "text-slate-500 hover:text-slate-300"
                 }`}
               >
@@ -163,7 +163,7 @@ export function Navigation() {
           onClick={() => navigateTo("dashboard")}
           className="flex items-center gap-2"
         >
-          <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg flex items-center justify-center">
             <BookOpen className="w-4 h-4 text-white" />
           </div>
           <span className="font-bold gradient-text">StudyBuddy</span>

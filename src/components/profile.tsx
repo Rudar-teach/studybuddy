@@ -17,8 +17,8 @@ const TIME_SLOTS = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00
 const SKILL_LEVELS = ["beginner", "intermediate", "advanced", "expert"] as const;
 const LEVEL_COLORS = {
   beginner: "from-slate-400 to-slate-500",
-  intermediate: "from-blue-400 to-blue-600",
-  advanced: "from-purple-400 to-purple-600",
+  intermediate: "from-cyan-400 to-cyan-600",
+  advanced: "from-cyan-400 to-cyan-600",
   expert: "from-amber-400 to-orange-500",
 };
 
@@ -152,7 +152,7 @@ export function ProfilePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0f172a]">
+    <div className="min-h-screen bg-[#082336]">
       <Navigation />
 
       <main className="pt-20 md:pt-24 pb-24 md:pb-8 px-4 md:px-6 max-w-5xl mx-auto">
@@ -164,11 +164,11 @@ export function ProfilePage() {
           <div className="mt-5 max-w-sm">
             <div className="flex items-center justify-between text-xs mb-1.5">
               <span className="text-slate-400">Profile completeness</span>
-              <span className="text-indigo-300 font-medium">{profileCompleteness(formData).percent}%</span>
+              <span className="text-teal-300 font-medium">{profileCompleteness(formData).percent}%</span>
             </div>
             <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-500"
+                className="h-full bg-gradient-to-r from-teal-500 to-cyan-400 transition-all duration-500"
                 style={{ width: `${profileCompleteness(formData).percent}%` }}
               />
             </div>
@@ -183,7 +183,7 @@ export function ProfilePage() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
                 activeTab === tab.id
-                  ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                  ? "bg-teal-500/20 text-teal-300 border border-teal-500/30"
                   : "text-slate-400 hover:text-white hover:bg-white/5"
               }`}
             >
@@ -202,9 +202,9 @@ export function ProfilePage() {
                   <img
                     src={user?.avatar}
                     alt={user?.name}
-                    className="w-20 h-20 rounded-full border-2 border-indigo-500/30"
+                    className="w-20 h-20 rounded-full border-2 border-teal-500/30"
                   />
-                  <button className="absolute -bottom-1 -right-1 w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center hover:bg-indigo-400 transition-colors">
+                  <button className="absolute -bottom-1 -right-1 w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center hover:bg-teal-400 transition-colors">
                     <Edit3 className="w-4 h-4 text-white" />
                   </button>
                 </div>
@@ -293,7 +293,7 @@ export function ProfilePage() {
                       onClick={() => {
                         updateField("subjects", [...formData.subjects, subject]);
                       }}
-                      className="text-xs px-3 py-1.5 rounded-full border border-slate-700 text-slate-400 hover:text-indigo-300 hover:border-indigo-500/30 hover:bg-indigo-500/10 transition-all"
+                      className="text-xs px-3 py-1.5 rounded-full border border-slate-700 text-slate-400 hover:text-teal-300 hover:border-teal-500/30 hover:bg-teal-500/10 transition-all"
                     >
                       + {subject}
                     </button>
@@ -353,7 +353,7 @@ export function ProfilePage() {
                 {formData.skills.map((skill) => (
                   <div
                     key={skill.name}
-                    className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:border-indigo-500/20 transition-all"
+                    className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:border-teal-500/20 transition-all"
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-medium text-white">{skill.name}</span>
@@ -408,7 +408,7 @@ export function ProfilePage() {
                             onClick={() => toggleSlot(day, time)}
                             className={`h-8 rounded-lg transition-all duration-200 ${
                               isSelected
-                                ? "bg-gradient-to-r from-indigo-500 to-purple-500 scale-105 shadow-lg shadow-indigo-500/20"
+                                ? "bg-gradient-to-r from-teal-500 to-cyan-500 scale-105 shadow-lg shadow-teal-500/20"
                                 : "bg-white/5 hover:bg-white/10"
                             }`}
                           />
@@ -421,7 +421,7 @@ export function ProfilePage() {
 
               <div className="mt-6 flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded bg-gradient-to-r from-indigo-500 to-purple-500" />
+                  <div className="w-4 h-4 rounded bg-gradient-to-r from-teal-500 to-cyan-500" />
                   <span className="text-xs text-slate-400">Available</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -432,9 +432,9 @@ export function ProfilePage() {
 
               {/* Current availability summary */}
               {formData.availability.length > 0 && (
-                <div className="mt-6 p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/10">
+                <div className="mt-6 p-4 rounded-xl bg-teal-500/5 border border-teal-500/10">
                   <p className="text-sm text-slate-400">
-                    <span className="text-indigo-400 font-medium">{formData.availability.length}</span> time slots selected
+                    <span className="text-teal-400 font-medium">{formData.availability.length}</span> time slots selected
                   </p>
                 </div>
               )}
@@ -465,7 +465,7 @@ export function ProfilePage() {
                 {formData.learningGoals.map((goal, i) => (
                   <div
                     key={goal}
-                    className="flex items-center gap-3 p-4 rounded-xl bg-white/5 border border-white/5 hover:border-indigo-500/20 transition-all animate-slide-up"
+                    className="flex items-center gap-3 p-4 rounded-xl bg-white/5 border border-white/5 hover:border-teal-500/20 transition-all animate-slide-up"
                     style={{ animationDelay: `${i * 0.05}s` }}
                   >
                     <div className="w-8 h-8 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 flex items-center justify-center flex-shrink-0">

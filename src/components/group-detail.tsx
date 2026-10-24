@@ -158,11 +158,11 @@ export function GroupDetailPage() {
 
   if (loading || !selectedGroup) {
     return (
-      <div className="min-h-screen bg-[#0f172a]">
+      <div className="min-h-screen bg-[#082336]">
         <Navigation />
         <main className="pt-20 md:pt-24 pb-24 md:pb-8 px-4 md:px-6 max-w-5xl mx-auto">
           <div className="text-center py-20">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 animate-pulse mx-auto mb-4" />
+            <div className="w-20 h-20 rounded-full bg-gradient-to-r from-teal-500 to-cyan-500 animate-pulse mx-auto mb-4" />
             <p className="text-slate-400">Loading...</p>
           </div>
         </main>
@@ -187,7 +187,7 @@ export function GroupDetailPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0f172a]">
+    <div className="min-h-screen bg-[#082336]">
       <Navigation />
       <main className="pt-20 md:pt-24 pb-24 md:pb-8 px-4 md:px-6 max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-6">
@@ -204,7 +204,7 @@ export function GroupDetailPage() {
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-4">
             <div className="glass rounded-2xl p-6 border border-slate-700/50 animate-slide-in-left">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mb-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center mb-4">
                 <BookOpen className="w-6 h-6 text-white" />
               </div>
               <h2 className="text-xl font-bold text-white mb-1">{selectedGroup.name}</h2>
@@ -212,11 +212,11 @@ export function GroupDetailPage() {
               <p className="text-sm text-slate-400 mt-3">{selectedGroup.description || "No description"}</p>
               <div className="mt-4 pt-4 border-t border-slate-700/50 space-y-3">
                 <div className="flex items-center gap-2 text-sm text-slate-400">
-                  <Users className="w-4 h-4 text-indigo-400" />
+                  <Users className="w-4 h-4 text-teal-400" />
                   <span>{memberList.length} members</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-slate-400">
-                  <MessageSquare className="w-4 h-4 text-purple-400" />
+                  <MessageSquare className="w-4 h-4 text-cyan-400" />
                   <span>{messages.length} messages</span>
                 </div>
               </div>
@@ -257,7 +257,7 @@ export function GroupDetailPage() {
                   onClick={() => setTab(t.id)}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
                     tab === t.id
-                      ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                      ? "bg-teal-500/20 text-teal-300 border border-teal-500/30"
                       : "text-slate-400 hover:text-white hover:bg-white/5"
                   }`}
                 >
@@ -316,7 +316,7 @@ export function GroupDetailPage() {
             {tab === "sessions" && (
               <div className="glass rounded-2xl border border-slate-700/50 p-6 animate-slide-in-right space-y-4">
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-indigo-400" /> Study Sessions
+                  <Calendar className="w-5 h-5 text-teal-400" /> Study Sessions
                 </h3>
 
                 {myMembership && (
@@ -342,8 +342,8 @@ export function GroupDetailPage() {
                       const iAmRsvp = user?.id ? rsvps.includes(user.id) : false;
                       return (
                         <div key={s.id} className="glass rounded-xl p-4 border border-slate-700/50 flex flex-wrap items-center gap-3">
-                          <div className="w-14 h-14 rounded-xl bg-indigo-500/10 flex flex-col items-center justify-center text-center">
-                            <span className="text-xs text-indigo-300 font-medium">{s.day}</span>
+                          <div className="w-14 h-14 rounded-xl bg-teal-500/10 flex flex-col items-center justify-center text-center">
+                            <span className="text-xs text-teal-300 font-medium">{s.day}</span>
                             <span className="text-sm text-white font-semibold">{s.time}</span>
                           </div>
                           <div className="flex-1 min-w-[120px]">
@@ -359,7 +359,7 @@ export function GroupDetailPage() {
                             className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${
                               iAmRsvp
                                 ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/30"
-                                : "text-slate-400 border-slate-700 hover:text-white hover:border-indigo-500/30"
+                                : "text-slate-400 border-slate-700 hover:text-white hover:border-teal-500/30"
                             }`}
                           >
                             {iAmRsvp ? "Going" : "RSVP"} · {rsvps.length}

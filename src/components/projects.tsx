@@ -113,7 +113,7 @@ export function ProjectsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-[#0f172a]">
+    <div className="min-h-screen bg-[#082336]">
       <Navigation />
 
       <main className="pt-20 md:pt-24 pb-24 md:pb-8 px-4 md:px-6 max-w-7xl mx-auto">
@@ -139,7 +139,7 @@ export function ProjectsPage() {
               onClick={() => setFilter(status)}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                 filter === status
-                  ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                  ? "bg-teal-500/20 text-teal-300 border border-teal-500/30"
                   : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
               }`}
             >
@@ -194,7 +194,7 @@ export function ProjectsPage() {
                     {project.technologies.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mb-4">
                         {project.technologies.slice(0, 4).map((tech: string) => (
-                          <span key={tech} className="text-xs px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20 flex items-center gap-1">
+                          <span key={tech} className="text-xs px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 flex items-center gap-1">
                             <Tag className="w-3 h-3" />
                             {tech}
                           </span>
@@ -292,7 +292,7 @@ export function ProjectsPage() {
                         key={tech}
                         type="button"
                         onClick={() => setNewProject((prev) => ({ ...prev, technologies: [...prev.technologies, tech] }))}
-                        className="text-xs px-2.5 py-1 rounded-full border border-slate-700 text-slate-400 hover:text-indigo-300 hover:border-indigo-500/30 transition-all"
+                        className="text-xs px-2.5 py-1 rounded-full border border-slate-700 text-slate-400 hover:text-teal-300 hover:border-teal-500/30 transition-all"
                       >
                         + {tech}
                       </button>

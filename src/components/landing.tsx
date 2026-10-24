@@ -16,15 +16,15 @@ export function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0f172a] overflow-hidden">
+    <div className="min-h-screen bg-[#082336] overflow-hidden">
       {/* Animated Background Blobs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div
-          className="absolute w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl"
+          className="absolute w-96 h-96 bg-teal-500/10 rounded-full blur-3xl"
           style={{ top: '10%', left: '10%', animation: 'blob 7s ease-in-out infinite' }}
         />
         <div
-          className="absolute w-80 h-80 bg-purple-500/10 rounded-full blur-3xl"
+          className="absolute w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl"
           style={{ top: '50%', right: '10%', animation: 'blob 9s ease-in-out infinite', animationDelay: '2s' }}
         />
         <div
@@ -39,8 +39,8 @@ export function LandingPage() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
               <div className="relative w-10 h-10">
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl rotate-6 opacity-80" />
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan-400 to-indigo-600 rounded-xl flex items-center justify-center">
+                <div className="absolute inset-0 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl rotate-6 opacity-80" />
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-400 to-teal-600 rounded-xl flex items-center justify-center">
                   <BookOpen className="w-5 h-5 text-white" />
                 </div>
               </div>
@@ -70,9 +70,9 @@ export function LandingPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div className="animate-slide-up">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-indigo-500/20 mb-6">
-                  <Sparkles className="w-4 h-4 text-indigo-400" />
-                  <span className="text-sm font-medium text-indigo-300">AI-Powered Matching</span>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-teal-500/20 mb-6">
+                  <Sparkles className="w-4 h-4 text-teal-400" />
+                  <span className="text-sm font-medium text-teal-300">AI-Powered Matching</span>
                 </div>
                 <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
                   Find Your{" "}
@@ -136,12 +136,12 @@ export function LandingPage() {
 
                 <div className="absolute top-20 -right-8 glass rounded-2xl p-4 animate-float" style={{ animationDelay: '1s' }}>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-pink-500 flex items-center justify-center">
                       <BookOpen className="w-5 h-5 text-white" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-white">Study Group</p>
-                      <p className="text-xs text-purple-400">Data Science</p>
+                      <p className="text-xs text-cyan-400">Data Science</p>
                     </div>
                   </div>
                 </div>
@@ -163,14 +163,14 @@ export function LandingPage() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-semibold text-white">Your Matches</h3>
-                      <span className="text-xs text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full">12 new</span>
+                      <span className="text-xs text-teal-400 bg-teal-500/10 px-3 py-1 rounded-full">12 new</span>
                     </div>
                     {[1, 2, 3].map((i) => (
                       <div
                         key={i}
-                        className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5 hover:border-indigo-500/30 transition-all cursor-pointer"
+                        className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5 hover:border-teal-500/30 transition-all cursor-pointer"
                       >
-                        <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${i === 1 ? 'from-indigo-400 to-purple-500' : i === 2 ? 'from-cyan-400 to-blue-500' : 'from-pink-400 to-rose-500'} flex items-center justify-center text-white font-bold`}>
+                        <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${i === 1 ? 'from-teal-400 to-cyan-500' : i === 2 ? 'from-cyan-400 to-cyan-500' : 'from-pink-400 to-rose-500'} flex items-center justify-center text-white font-bold`}>
                           {String.fromCharCode(64 + i)}
                         </div>
                         <div className="flex-1">
@@ -209,21 +209,21 @@ export function LandingPage() {
                 icon: Sparkles,
                 title: "Smart Matching",
                 description: "AI-powered algorithm matches you based on subjects, skills, availability, and learning goals.",
-                color: "from-indigo-500 to-purple-600",
+                color: "from-teal-500 to-cyan-600",
                 delay: 0,
               },
               {
                 icon: Users,
                 title: "Study Groups",
                 description: "Create or join study groups with up to 50 members. Schedule sessions and collaborate in real-time.",
-                color: "from-cyan-500 to-blue-600",
+                color: "from-cyan-500 to-cyan-600",
                 delay: 0.1,
               },
               {
                 icon: FolderOpen,
                 title: "Project Partners",
                 description: "Find collaborators for your projects. Share ideas, divide tasks, and build something amazing together.",
-                color: "from-purple-500 to-pink-600",
+                color: "from-cyan-500 to-pink-600",
                 delay: 0.2,
               },
               {
@@ -295,8 +295,8 @@ export function LandingPage() {
               <div key={step.step} className="relative">
                 <div className="text-center">
                   <div className="relative w-20 h-20 mx-auto mb-6">
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl rotate-6 opacity-50" />
-                    <div className="relative w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center">
+                    <div className="absolute inset-0 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl rotate-6 opacity-50" />
+                    <div className="relative w-full h-full bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl flex items-center justify-center">
                       <span className="text-3xl font-bold text-white">{step.step}</span>
                     </div>
                   </div>
@@ -305,7 +305,7 @@ export function LandingPage() {
                 </div>
                 {i < 2 && (
                   <div className="hidden md:block absolute top-10 -right-4 w-8">
-                    <ArrowRight className="w-8 h-8 text-indigo-500/30" />
+                    <ArrowRight className="w-8 h-8 text-teal-500/30" />
                   </div>
                 )}
               </div>
@@ -317,8 +317,8 @@ export function LandingPage() {
       {/* CTA Section */}
       <section className="relative py-32">
         <div className="max-w-4xl mx-auto px-6">
-          <div className="glass rounded-3xl p-12 border border-indigo-500/20 text-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10" />
+          <div className="glass rounded-3xl p-12 border border-teal-500/20 text-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-teal-500/10 to-cyan-500/10" />
             <div className="relative">
               <h2 className="text-4xl md:text-5xl font-bold mb-4">
                 Ready to Find Your{" "}
@@ -344,7 +344,7 @@ export function LandingPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg flex items-center justify-center">
                 <BookOpen className="w-4 h-4 text-white" />
               </div>
               <span className="font-bold gradient-text">StudyBuddy</span>

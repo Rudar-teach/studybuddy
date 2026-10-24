@@ -28,18 +28,18 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#082336] flex items-center justify-center p-4">
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute w-96 h-96 bg-indigo-500/8 rounded-full blur-3xl animate-blob" style={{ top: '20%', left: '20%' }} />
-        <div className="absolute w-80 h-80 bg-purple-500/8 rounded-full blur-3xl animate-blob" style={{ bottom: '20%', right: '20%', animationDelay: '3s' }} />
+        <div className="absolute w-96 h-96 bg-teal-500/8 rounded-full blur-3xl animate-blob" style={{ top: '20%', left: '20%' }} />
+        <div className="absolute w-80 h-80 bg-cyan-500/8 rounded-full blur-3xl animate-blob" style={{ bottom: '20%', right: '20%', animationDelay: '3s' }} />
       </div>
 
       <div className="relative w-full max-w-md">
         <div className="text-center mb-8 animate-fade-in">
           <button onClick={() => navigateTo("/")} className="inline-flex items-center gap-3 mb-6">
             <div className="relative w-12 h-12">
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl rotate-6" />
-              <div className="absolute inset-0 bg-gradient-to-br from-cyan-400 to-indigo-600 rounded-xl flex items-center justify-center">
+              <div className="absolute inset-0 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl rotate-6" />
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-400 to-teal-600 rounded-xl flex items-center justify-center">
                 <BookOpen className="w-6 h-6 text-white" />
               </div>
             </div>
@@ -66,7 +66,7 @@ export function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                  className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all"
                   placeholder="you@university.edu"
                 />
               </div>
@@ -81,7 +81,7 @@ export function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full pl-12 pr-12 py-3.5 bg-white/5 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                  className="w-full pl-12 pr-12 py-3.5 bg-white/5 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all"
                   placeholder="••••••••"
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
@@ -109,7 +109,7 @@ export function LoginPage() {
 
         <p className="text-center mt-6 text-slate-400 text-sm">
           Don&apos;t have an account?{" "}
-          <button onClick={() => navigateTo("register")} className="text-indigo-400 hover:text-indigo-300 font-medium">
+          <button onClick={() => navigateTo("register")} className="text-teal-400 hover:text-teal-300 font-medium">
             Get Started
           </button>
         </p>
@@ -154,18 +154,18 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#082336] flex items-center justify-center p-4">
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute w-96 h-96 bg-purple-500/8 rounded-full blur-3xl animate-blob" style={{ top: '20%', right: '20%' }} />
-        <div className="absolute w-80 h-80 bg-indigo-500/8 rounded-full blur-3xl animate-blob" style={{ bottom: '20%', left: '20%', animationDelay: '3s' }} />
+        <div className="absolute w-96 h-96 bg-cyan-500/8 rounded-full blur-3xl animate-blob" style={{ top: '20%', right: '20%' }} />
+        <div className="absolute w-80 h-80 bg-teal-500/8 rounded-full blur-3xl animate-blob" style={{ bottom: '20%', left: '20%', animationDelay: '3s' }} />
       </div>
 
       <div className="relative w-full max-w-md">
         <div className="text-center mb-8 animate-fade-in">
           <button onClick={() => navigateTo("/")} className="inline-flex items-center gap-3 mb-6">
             <div className="relative w-12 h-12">
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl rotate-6" />
-              <div className="absolute inset-0 bg-gradient-to-br from-cyan-400 to-indigo-600 rounded-xl flex items-center justify-center">
+              <div className="absolute inset-0 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl rotate-6" />
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-400 to-teal-600 rounded-xl flex items-center justify-center">
                 <BookOpen className="w-6 h-6 text-white" />
               </div>
             </div>
@@ -192,7 +192,7 @@ export function RegisterPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                  className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all"
                   placeholder="Jane Doe"
                 />
               </div>
@@ -207,7 +207,7 @@ export function RegisterPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                  className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all"
                   placeholder="you@university.edu"
                 />
               </div>
@@ -222,7 +222,7 @@ export function RegisterPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full pl-12 pr-12 py-3.5 bg-white/5 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                  className="w-full pl-12 pr-12 py-3.5 bg-white/5 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all"
                   placeholder="Min 6 characters"
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
@@ -240,7 +240,7 @@ export function RegisterPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                  className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all"
                   placeholder="Repeat password"
                 />
               </div>
@@ -265,7 +265,7 @@ export function RegisterPage() {
 
         <p className="text-center mt-6 text-slate-400 text-sm">
           Already have an account?{" "}
-          <button onClick={() => navigateTo("login")} className="text-indigo-400 hover:text-indigo-300 font-medium">
+          <button onClick={() => navigateTo("login")} className="text-teal-400 hover:text-teal-300 font-medium">
             Sign In
           </button>
         </p>

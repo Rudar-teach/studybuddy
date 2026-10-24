@@ -8,12 +8,12 @@ export function cn(...inputs: ClassValue[]) {
 
 // ===== Deterministic avatar (feature 12) =====
 const AVATAR_COLORS = [
-  "from-indigo-500 to-purple-600",
+  "from-teal-500 to-cyan-600",
   "from-cyan-400 to-blue-600",
   "from-emerald-500 to-teal-600",
   "from-pink-500 to-rose-600",
   "from-amber-400 to-orange-600",
-  "from-fuchsia-500 to-purple-600",
+  "from-fuchsia-500 to-cyan-600",
 ];
 
 function hashString(str: string): number {

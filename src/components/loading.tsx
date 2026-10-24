@@ -1,8 +1,8 @@
 export function LoadingScreen() {
   return (
-    <div className="fixed inset-0 bg-[#0f172a] flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-[#082336] flex items-center justify-center z-50">
       <div className="relative">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500 animate-spin-slow" style={{ mask: "radial-gradient(farthest-side, transparent calc(100% - 6px), #fff calc(100% - 6px))", WebkitMask: "radial-gradient(farthest-side, transparent calc(100% - 6px), #fff calc(100% - 6px))" }} />
+        <div className="w-20 h-20 rounded-full bg-gradient-to-r from-teal-500 via-cyan-500 to-cyan-500 animate-spin-slow" style={{ mask: "radial-gradient(farthest-side, transparent calc(100% - 6px), #fff calc(100% - 6px))", WebkitMask: "radial-gradient(farthest-side, transparent calc(100% - 6px), #fff calc(100% - 6px))" }} />
         <div className="absolute inset-0 flex items-center justify-center">
           <span className="text-2xl font-bold gradient-text">SB</span>
         </div>

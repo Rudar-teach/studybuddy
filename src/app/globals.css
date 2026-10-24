@@ -1,38 +1,38 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0f172a;
-  --foreground: #f8fafc;
-  --primary: #6366f1;
-  --primary-light: #818cf8;
-  --primary-dark: #4f46e5;
-  --secondary: #8b5cf6;
+  --background: #082336;
+  --foreground: #f0fdfa;
+  --primary: #0d9488;
+  --primary-light: #2dd4bf;
+  --primary-dark: #0f766e;
+  --secondary: #06b6d4;
   --accent: #06b6d4;
-  --accent-pink: #ec4899;
-  --accent-orange: #f97316;
+  --accent-pink: #f472b6;
+  --accent-orange: #fb923c;
   --success: #10b981;
   --warning: #f59e0b;
   --error: #ef4444;
-  --card-bg: rgba(30, 41, 59, 0.7);
-  --card-border: rgba(99, 102, 241, 0.2);
-  --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --card-bg: rgba(15, 42, 58, 0.72);
+  --card-border: rgba(45, 212, 191, 0.2);
+  --glass-bg: rgba(13, 148, 136, 0.07);
+  --glass-border: rgba(45, 212, 191, 0.12);
+  --text-primary: #ecfeff;
+  --text-secondary: #7dd3c8;
+  --text-muted: #4a8f88;
 }
 
-/* ===== Light theme (feature 13) ===== */
+/* ===== Light theme ===== */
 [data-theme="light"] {
-  --background: #f1f5f9;
-  --foreground: #0f172a;
+  --background: #f0fdfa;
+  --foreground: #134e4a;
   --card-bg: rgba(255, 255, 255, 0.85);
-  --card-border: rgba(99, 102, 241, 0.15);
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(15, 23, 42, 0.08);
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
+  --card-border: rgba(13, 148, 136, 0.15);
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(19, 78, 74, 0.08);
+  --text-primary: #134e4a;
+  --text-secondary: #4b7a75;
+  --text-muted: #8aa39f;
 }
 
 @theme inline {

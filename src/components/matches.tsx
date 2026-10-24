@@ -107,7 +107,7 @@ export function MatchesPage() {
   const getScoreColor = (score: number) => {
     if (score >= 80) return "from-emerald-500 to-green-500";
     if (score >= 60) return "from-amber-500 to-orange-500";
-    if (score >= 40) return "from-blue-500 to-cyan-500";
+    if (score >= 40) return "from-cyan-500 to-cyan-500";
     return "from-slate-500 to-slate-600";
   };
 
@@ -119,13 +119,13 @@ export function MatchesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a]">
+    <div className="min-h-screen bg-[#082336]">
       <Navigation />
 
       <main className="pt-20 md:pt-24 pb-24 md:pb-8 px-4 md:px-6 max-w-7xl mx-auto">
         <div className="animate-slide-up">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -136,8 +136,8 @@ export function MatchesPage() {
         </div>
 
         {/* How matching works */}
-        <div className="mt-8 glass rounded-2xl p-6 border border-indigo-500/10 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 animate-slide-up stagger-1">
-          <h3 className="text-sm font-semibold text-indigo-300 mb-3 flex items-center gap-2">
+        <div className="mt-8 glass rounded-2xl p-6 border border-teal-500/10 bg-gradient-to-r from-teal-500/5 to-cyan-500/5 animate-slide-up stagger-1">
+          <h3 className="text-sm font-semibold text-teal-300 mb-3 flex items-center gap-2">
             <Zap className="w-4 h-4" />
             How Matching Works
           </h3>
@@ -149,12 +149,12 @@ export function MatchesPage() {
               { label: "Learning Goals", weight: "20%", icon: Star },
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center flex-shrink-0">
-                  <item.icon className="w-4 h-4 text-indigo-400" />
+                <div className="w-8 h-8 rounded-lg bg-teal-500/10 flex items-center justify-center flex-shrink-0">
+                  <item.icon className="w-4 h-4 text-teal-400" />
                 </div>
                 <div>
                   <p className="text-xs font-medium text-slate-300">{item.label}</p>
-                  <p className="text-xs text-indigo-400">{item.weight}</p>
+                  <p className="text-xs text-teal-400">{item.weight}</p>
                 </div>
               </div>
             ))}
@@ -176,7 +176,7 @@ export function MatchesPage() {
               onClick={() => setFilter(f.id)}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                 filter === f.id
-                  ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                  ? "bg-teal-500/20 text-teal-300 border border-teal-500/30"
                   : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
               }`}
             >
@@ -231,7 +231,7 @@ export function MatchesPage() {
                         {matchUser.activeThisWeek && (
                           <span
                             title="Active this week"
-                            className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-[#0f172a]"
+                            className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-[#082336]"
                           />
                         )}
                       </div>

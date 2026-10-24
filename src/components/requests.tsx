@@ -77,7 +77,7 @@ export function RequestsPage() {
   const rejectedRequests = requests.filter((r) => r.status === "rejected");
 
   return (
-    <div className="min-h-screen bg-[#0f172a]">
+    <div className="min-h-screen bg-[#082336]">
       <Navigation />
 
       <main className="pt-20 md:pt-24 pb-24 md:pb-8 px-4 md:px-6 max-w-4xl mx-auto">
@@ -97,13 +97,13 @@ export function RequestsPage() {
               onClick={() => setActiveTab(tab.id)}
               className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center gap-2 ${
                 activeTab === tab.id
-                  ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                  ? "bg-teal-500/20 text-teal-300 border border-teal-500/30"
                   : "text-slate-400 hover:text-white hover:bg-white/5"
               }`}
             >
               {tab.label}
               {tab.count > 0 && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300">
                   {tab.count}
                 </span>
               )}
@@ -173,7 +173,7 @@ function RequestCard({ request, onAccept, onReject, index }: {
     >
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-4">
-          <div className={`w-10 h-10 rounded-xl ${isStudyGroup ? 'bg-gradient-to-br from-indigo-500 to-blue-600' : 'bg-gradient-to-br from-purple-500 to-pink-600'} flex items-center justify-center flex-shrink-0`}>
+          <div className={`w-10 h-10 rounded-xl ${isStudyGroup ? 'bg-gradient-to-br from-teal-500 to-cyan-600' : 'bg-gradient-to-br from-cyan-500 to-pink-600'} flex items-center justify-center flex-shrink-0`}>
             {isStudyGroup ? <Users className="w-5 h-5 text-white" /> : <BookOpen className="w-5 h-5 text-white" />}
           </div>
           <div>
