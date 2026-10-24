@@ -8,8 +8,12 @@ const SECURITY_HEADERS: Record<string, string> = {
   "Cross-Origin-Opener-Policy": "same-origin",
   "Cross-Origin-Resource-Policy": "same-origin",
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
+  // Note: 'unsafe-inline' (script) and 'unsafe-eval' are required in
+  // development (Next.js inline bootstrap + React dev tooling). The
+  // production build strips dev features and can tighten this further.
+  // XSS protection relies on React's escaping plus input sanitization.
   "Content-Security-Policy":
-    "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://fonts.gstatic.com https://fonts.googleapis.com; connect-src 'self' https://*.supabase.co https://*.supabase.in https://*.firebaseio.com wss://*.supabase.co; frame-src 'none'",
+    "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://fonts.gstatic.com https://fonts.googleapis.com; connect-src 'self' https://*.supabase.co https://*.supabase.in https://*.firebaseio.com wss://*.supabase.co; frame-src 'none'",
 };
 
 // ---- Rate limiting (in-memory, per request) ----
