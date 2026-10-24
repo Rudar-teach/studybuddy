@@ -51,3 +51,6 @@ next-env.d.ts
 /public/uploads/
 dev-server.log
 next.config.ts
+
+# misc additions
+*.log

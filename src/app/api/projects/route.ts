@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
 import { getAllProjects, createProject } from "@/lib/projects";
 import { getUserFromRequest } from "@/lib/auth-middleware";
+import { initStore } from "@/lib/store";
+import { safeJson, cleanText, cleanStringList, cleanUrl } from "@/lib/sanitize";
+import { logError } from "@/lib/logger";
 
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
-    const projects = getAllProjects();
+    initStore();
+    const projects = await getAllProjects();
     return NextResponse.json({ projects });
   } catch (error) {
-    console.error("Projects error:", error);
+    logError("Projects error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -17,16 +21,22 @@ export async function POST(request: Request) {
     const user = await getUserFromRequest(request);
     if (user instanceof Response) return user;
 
-    const body = await request.json();
-    const { title, description, technologies = [] } = body;
+    initStore();
+    const body = await safeJson(request);
+    if (!body) {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
 
+    const title = cleanText(body.title, 120);
+    const description = cleanText(body.description, 2000);
+    const technologies = cleanStringList(body.technologies, 20);
     if (!title) {
       return NextResponse.json({ error: "Title required" }, { status: 400 });
     }
 
-    const project = createProject({
+    const project = await createProject({
       title,
-      description: description || "",
+      description,
       technologies,
       creatorId: user.id,
       collaborators: [user.id],
@@ -35,7 +45,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ project }, { status: 201 });
   } catch (error) {
-    console.error("Create project error:", error);
+    logError("Create project error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

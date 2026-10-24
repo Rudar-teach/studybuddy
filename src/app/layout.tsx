@@ -1,12 +1,22 @@
 import type { ReactNode } from "react";
+import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "StudyBuddy - Find Your Perfect Study Partner",
-  description: "Match with study partners and project collaborators based on subjects, skills, and availability.",
+  description:
+    "Match with study partners and project collaborators based on subjects, skills, and availability.",
+  manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icons/icon-192.png", type: "image/png", sizes: "192x192" },
+    ],
+    apple: [{ url: "/icons/icon-192.png" }],
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

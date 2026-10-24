@@ -67,7 +67,7 @@ export function OnboardingGate({ user, onComplete, onContinue }: OnboardingGateP
             onClick={onComplete}
             className="w-full btn-primary py-3 rounded-xl font-semibold"
           >
-            Look great — continue
+            Continue to dashboard
           </button>
         ) : (
           <div className="flex gap-3">

@@ -244,7 +244,7 @@ export function ProjectsPage() {
                     type="text"
                     value={newProject.title}
                     onChange={(e) => setNewProject((prev) => ({ ...prev, title: e.target.value }))}
-                    placeholder="e.g. AI-Powered Study Assistant"
+                    placeholder="e.g. Study session scheduler"
                     className="input-glass w-full px-4 py-3 rounded-xl text-sm"
                     required
                   />

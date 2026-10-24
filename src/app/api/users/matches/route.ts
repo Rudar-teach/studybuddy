@@ -3,22 +3,26 @@ import { getUserFromRequest } from "@/lib/auth-middleware";
 import { getUserById, getAllUsers, touchUser } from "@/lib/auth";
 import { getTopMatches, getMutualMatchIds } from "@/lib/matching";
 import { relativeTime, isActiveLastWeek } from "@/lib/utils";
+import { initStore } from "@/lib/store";
+import { logError } from "@/lib/logger";
 
 export async function GET(request: Request) {
   try {
     const userResult = await getUserFromRequest(request);
     if (userResult instanceof Response) return userResult;
-    const currentUser = getUserById(userResult.id);
+
+    initStore();
+    const currentUser = await getUserById(userResult.id);
     if (!currentUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Touch for last-active indicator (feature 10)
-    touchUser(currentUser.id);
+    // Touch for last-active indicator
+    await touchUser(currentUser.id);
 
-    const allUsers = getAllUsers();
+    const allUsers = await getAllUsers();
 
-    // Exclude blocklisted users from matches (feature 9)
+    // Exclude blocklisted users from matches
     const blocklist = currentUser.blocklist || [];
     const visibleUsers = blocklist.length
       ? allUsers.filter((u) => !blocklist.includes(u.id))
@@ -51,7 +55,7 @@ export async function GET(request: Request) {
       totalMutual: results.filter((r) => r.mutual).length,
     });
   } catch (error) {
-    console.error("Matches error:", error);
+    logError("Matches error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

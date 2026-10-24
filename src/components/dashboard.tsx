@@ -107,9 +107,7 @@ export function Dashboard() {
         {/* Welcome Header */}
         <div className="mb-8 animate-slide-up">
           <h1 className="text-3xl md:text-4xl font-bold mb-2">
-            Hello,{" "}
-            <span className="gradient-text">{user?.name?.split(" ")[0]}</span>
-            ! 👋
+            Hello, <span className="gradient-text">{user?.name?.split(" ")[0]}</span>
           </h1>
           <p className="text-slate-400 text-lg">
             Ready to find your next study partner?

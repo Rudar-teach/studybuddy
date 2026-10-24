@@ -1,223 +1,73 @@
-# StudyBuddy — Study Group & Project-Partner Matcher
+# StudyBuddy
 
-Find study partners, form study groups, and post collaborative projects — all matched by shared subjects, skills, and availability.
+A study group and project-partner matcher. It pairs people by weighted
+subject overlap, complementary skills, shared availability, and aligned
+learning goals. Groups get shared chat, scheduled sessions, resource
+sharing, and weekly progress check-ins.
 
-🔗 **Live:** [github.com/Rudar-teach/studybuddy](https://github.com/Rudar-teach/studybuddy)
+## Stack
 
----
+- Next.js 16 (App Router, Turbopack) + TypeScript + Tailwind CSS 4
+- Supabase for email/password auth (sessions + user metadata)
+- Data layer: Firestore (Firebase) when configured, with a local JSON
+  file fallback so the app runs before Firebase is set up
 
-## Features
-
-### Core Functionality
-- **Smart Matching** — Find the best study partners ranked by shared subjects, complementary skills, and overlapping availability slots
-- **Study Groups** — Create or join groups with a subject focus, set schedule, max members, and goals
-- **Project Collaboration** — Post projects, invite collaborators, track status (open → in-progress → completed)
-- **Collaboration Requests** — Send/accept/reject requests with a personal message — no duplicate pending requests
-- **Real-time Group Chat** — Message other group members directly within any group you've joined
-- **User Profiles** — Showcase subjects, skills, availability, year, major, bio, and avatar
-- **Dark/Light Theme** — Toggle between dark and light mode, preference persisted in localStorage
-
-### UI / UX
-- Fully responsive dark-themed interface with purple/indigo accent colors
-- Toast notifications for all actions (join, leave, request, etc.)
-- Animated landing page with feature cards
-- Skeleton loading states and hover animations
-- Mobile-first responsive navigation
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 16 (App Router, TypeScript) |
-| Styling | Tailwind CSS 4 |
-| Icons | Lucide React |
-| Auth | Supabase Auth (email + password) |
-| Database | JSON-file storage (no setup required) |
-| State | React Context API |
-
----
-
-## Getting Started
-
-### Prerequisites
-- Node.js 18+
-- npm
-
-### Installation
+## Local development
 
 ```bash
-git clone https://github.com/Rudar-teach/studybuddy.git
-cd studybuddy
 npm install
+npm run dev          # http://localhost:3456
 ```
 
-### Supabase Setup (Required)
-
-1. Go to [supabase.com](https://supabase.com) and create a free project
-2. In your project's **Settings > API** page, copy your **Project URL** and **anon/public key**
-3. Create a `.env` file:
-
-```bash
-cp .env.example .env
-```
-
-4. Add your Supabase credentials:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-public-key-here
-```
-
-5. Enable **Email** auth in Supabase Dashboard > Authentication > Providers
-
-> **Note:** `.env` is git-ignored — your API key is never committed to the repo.
-
-### Run
-
-```bash
-npm run dev
-# Open http://localhost:3000
-```
-
-### Build for Production
-
-```bash
-npm run build
-npm run start
-```
-
-Ensure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set in your environment.
-
----
-
-## Project Structure
+Create a `.env` from `.env.example` and fill in your keys:
 
 ```
-src/
-├── app/
-│   ├── api/                  # REST API routes
-│   │   ├── auth/             #   register, login, me
-│   │   ├── groups/           #   CRUD + join/leave
-│   │   ├── projects/         #   CRUD + collaborator invites
-│   │   ├── requests/         #   create/accept/reject
-│   │   └── users/            #   search, matches, profile
-│   ├── globals.css
-│   ├── layout.tsx
-│   └── page.tsx              # SPA router (client-side)
-├── components/
-│   ├── auth.tsx              #   Login/Register forms
-│   ├── browse.tsx            #   Browse all users with filters
-│   ├── dashboard.tsx         #   User dashboard
-│   ├── group-detail.tsx      #   Group view + chat
-│   ├── groups.tsx            #   Browse/join/create groups
-│   ├── landing.tsx           #   Landing page
-│   ├── matches.tsx           #   Match results
-│   ├── navigation.tsx        #   Navbar
-│   ├── profile.tsx           #   Edit profile
-│   ├── projects.tsx          #   Browse/post projects
-│   ├── providers.tsx         #   React Context (auth, theme, nav)
-│   ├── requests.tsx          #   Incoming/sent requests
-│   └── toast.tsx             #   Toast notifications
-├── lib/
-│   ├── auth.ts               #   Auth logic (register, login, JWT)
-│   ├── database.ts           #   JSON-file DB (CRUD)
-│   ├── groups.ts             #   Group operations
-│   ├── matching.ts           #   Matching algorithm
-│   ├── messages.ts           #   Group chat messages
-│   ├── projects.ts           #   Project operations
-│   └── requests.ts           #   Request operations
-└── types/
-    └── index.ts              #   TypeScript interfaces
+# Supabase (Auth)
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+
+# Firebase (Firestore)
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+
+# Admin (server-side only, never exposed to the browser)
+ADMIN_KEYS=change-me-to-a-strong-secret
 ```
 
----
+- Without Supabase keys, the landing page renders but login returns
+  "Supabase not configured".
+- Without Firebase keys, data falls back to `data/studybuddy.json`.
+- `ADMIN_KEYS` is only read on the server; the client never sees it.
 
-## API Routes
+## Security notes
 
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/api/auth/register` | Register new user |
-| POST | `/api/auth/login` | Login, returns JWT |
-| GET | `/api/auth/me` | Get current user |
-| GET | `/api/groups` | List all groups |
-| POST | `/api/groups` | Create group |
-| POST | `/api/groups/[id]/join` | Join group |
-| POST | `/api/groups/[id]/leave` | Leave group |
-| GET | `/api/groups/[id]/messages` | Get group chat |
-| POST | `/api/groups/[id]/messages` | Send message |
-| GET | `/api/projects` | List all projects |
-| POST | `/api/projects` | Create project |
-| GET | `/api/requests` | Get requests for user |
-| POST | `/api/requests` | Send request |
-| POST | `/api/requests/[id]/accept` | Accept request |
-| POST | `/api/requests/[id]/reject` | Reject request |
-| GET | `/api/users/search` | Search users |
-| GET | `/api/users/matches` | Get matched users |
-| GET | `/api/users/me` | Get/update profile |
+- All API routes authenticate via Supabase JWT (Bearer token) and
+  enforce ownership: a user can only act on their own requests,
+  groups, and projects.
+- `/api/admin` requires an `X-Admin-Key` header that matches one of
+  the `ADMIN_KEYS` env values.
+- Input is sanitized on every mutating endpoint: text is trimmed,
+  control characters stripped, and length-capped; URLs must be
+  http/https with no userinfo; lists are capped.
+- Rate limiting (per token or IP, sliding window) applies to all
+  `/api/` routes, with tighter caps on request/report/admin endpoints.
+- Security headers (CSP, HSTS, X-Frame-Options, etc.) are set on
+  every response via `src/middleware.ts`.
+- Debug logging is gated behind `NODE_ENV === "development"`.
+- `.env`, `.env.*.local`, `data/`, and `dev-server.log` are
+  gitignored. Run a periodic secret scan on git history; nothing in
+  the committed history currently contains a real key.
 
----
+## Feature map
 
-## Matching Algorithm
-
-The matcher (`src/lib/matching.ts`) scores potential partners on three dimensions:
-
-1. **Shared Subjects** (40 pts max) — how many subjects overlap
-2. **Complementary Skills** (30 pts max) — beginner + expert pairs score higher
-3. **Availability Overlap** (30 pts max) — matching time slots
-
-Results are returned as a ranked list with per-reason breakdowns.
-
----
-
-## Deployment
-
-### Vercel (recommended)
-
-```bash
-npm i -g vercel
-vercel
-```
-
-Set `JWT_SECRET` in Vercel dashboard → Settings → Environment Variables.
-
-### Self-hosted
-
-```bash
-npm run build
-npm run start
-```
-
-Ensure `data/` is writable (the JSON database lives there). Add `data/` to `.gitignore` (already done).
-
----
-
-## Security Notes
-
-- `.env` is git-ignored — never commit secrets
-- JWT tokens expire after 7 days
-- Passwords are hashed with bcrypt (12 rounds)
-- No API keys, OAuth, or third-party services required
-- The JSON-file DB stores data locally — no external DB needed
-
----
-
-## Roadmap
-
-- [ ] WebSocket real-time chat (instead of polling)
-- [ ] File/image sharing in groups
-- [ ] Calendar integration for scheduling
-- [ ] Email notifications for requests
-- [ ] Group video call link sharing
-- [ ] User ratings/reviews
-- [ ] Export profile to PDF
-- [ ] Multi-language support
-
----
-
-## License
-
-MIT
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
+- Matching: `src/lib/matching.ts` (weighted score + reasons +
+  mutual-match detection)
+- Profile completeness, avatars, relative time: `src/lib/utils.ts`
+- Data access: `src/lib/store.ts` (Firebase or JSON fallback)
+- Group sessions / resources / check-ins: `src/lib/groups.ts`
+- Reporting and blocklist: `src/lib/reports.ts`
+- Legal pages: `src/app/pages/privacy`, `src/app/pages/terms`
+- Admin: `src/app/admin` + `/api/admin`

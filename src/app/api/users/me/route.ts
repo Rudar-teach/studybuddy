@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { getUserFromRequest } from "@/lib/auth-middleware";
-import { getUserById, updateUser } from "@/lib/auth";
-import { insert } from "@/lib/database";
+import { getUserById, updateUser, createUser } from "@/lib/auth";
 import { createSupabaseClient } from "@/lib/supabase";
+import { initStore, activeProvider } from "@/lib/store";
+import { safeJson, cleanText, cleanStringList, cleanUrl } from "@/lib/sanitize";
+import { logError } from "@/lib/logger";
 
 export async function GET(request: Request) {
   try {
@@ -10,14 +12,16 @@ export async function GET(request: Request) {
     if (userResult instanceof Response) return userResult;
     const supabaseUser = userResult;
 
-    // Try to find in our DB
-    let appUser = getUserById(supabaseUser.id);
+    initStore();
+    let appUser = await getUserById(supabaseUser.id);
     if (!appUser) {
-      // First login — sync Supabase user to our DB
-      appUser = insert("users", {
+      appUser = await createUser({
         id: supabaseUser.id,
         email: supabaseUser.email || "",
-        name: supabaseUser.user_metadata?.full_name || supabaseUser.email?.split("@")[0] || "",
+        name:
+          supabaseUser.user_metadata?.full_name ||
+          supabaseUser.email?.split("@")[0] ||
+          "",
         password: "",
         bio: "",
         subjects: [],
@@ -26,7 +30,6 @@ export async function GET(request: Request) {
         learningGoals: [],
         year: "",
         major: "",
-        createdAt: supabaseUser.created_at || new Date().toISOString(),
         avatar: supabaseUser.user_metadata?.avatar_url || "",
       });
     }
@@ -35,10 +38,10 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const { password: _, ...userWithoutPassword } = appUser;
-    return NextResponse.json({ user: userWithoutPassword });
+    const { password: _pw, ...userWithoutPassword } = appUser;
+    return NextResponse.json({ user: userWithoutPassword, provider: activeProvider() });
   } catch (error) {
-    console.error("Get profile error:", error);
+    logError("Get profile error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -49,18 +52,56 @@ export async function PUT(request: Request) {
     if (userResult instanceof Response) return userResult;
     const supabaseUser = userResult;
 
-    const body = await request.json();
+    initStore();
+    const body = await safeJson(request);
+    if (!body) {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
 
-    // Update Supabase user metadata
+    const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const clean = {
+      name: cleanText(body.name, 80),
+      bio: cleanText(body.bio, 500),
+      subjects: cleanStringList(body.subjects, 30),
+      skills: Array.isArray(body.skills)
+        ? body.skills
+            .filter(
+              (s: any) =>
+                s &&
+                typeof s.name === "string" &&
+                ["beginner", "intermediate", "advanced", "expert"].includes(s.level)
+            )
+            .slice(0, 30)
+            .map((s: any) => ({ name: cleanText(s.name, 60), level: s.level }))
+        : undefined,
+      availability: Array.isArray(body.availability)
+        ? body.availability
+            .filter(
+              (a: any) =>
+                a &&
+                DAYS.includes(a.day) &&
+                typeof a.startTime === "string" &&
+                /^\d{2}:\d{2}$/.test(a.startTime) &&
+                typeof a.endTime === "string" &&
+                /^\d{2}:\d{2}$/.test(a.endTime)
+            )
+            .slice(0, 70)
+        : undefined,
+      learningGoals: cleanStringList(body.learningGoals, 20),
+      year: cleanText(body.year, 40),
+      major: cleanText(body.major, 80),
+      avatar: cleanUrl(body.avatar, 200),
+    };
+
     const metadataUpdates: Record<string, any> = {};
-    if (body.name) metadataUpdates.full_name = body.name;
-    if (body.bio) metadataUpdates.bio = body.bio;
-    if (body.subjects) metadataUpdates.subjects = body.subjects;
-    if (body.skills) metadataUpdates.skills = body.skills;
-    if (body.availability) metadataUpdates.availability = body.availability;
-    if (body.learningGoals) metadataUpdates.learning_goals = body.learningGoals;
-    if (body.year) metadataUpdates.year = body.year;
-    if (body.major) metadataUpdates.major = body.major;
+    if (clean.name) metadataUpdates.full_name = clean.name;
+    if (clean.bio) metadataUpdates.bio = clean.bio;
+    if (clean.subjects) metadataUpdates.subjects = clean.subjects;
+    if (clean.skills) metadataUpdates.skills = clean.skills;
+    if (clean.availability) metadataUpdates.availability = clean.availability;
+    if (clean.learningGoals) metadataUpdates.learning_goals = clean.learningGoals;
+    if (clean.year) metadataUpdates.year = clean.year;
+    if (clean.major) metadataUpdates.major = clean.major;
 
     if (Object.keys(metadataUpdates).length > 0) {
       const supabase = createSupabaseClient();
@@ -69,16 +110,15 @@ export async function PUT(request: Request) {
       }
     }
 
-    // Update our JSON DB
-    const user = updateUser(supabaseUser.id, body);
+    const user = await updateUser(supabaseUser.id, clean);
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const { password: _, ...userWithoutPassword } = user;
+    const { password: _pw, ...userWithoutPassword } = user;
     return NextResponse.json({ user: userWithoutPassword });
   } catch (error) {
-    console.error("Profile update error:", error);
+    logError("Profile update error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

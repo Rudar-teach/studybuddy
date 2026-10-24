@@ -1,40 +1,49 @@
 import { v4 as uuidv4 } from "uuid";
-import { insert, selectAll, dbUpdate } from "./database";
-import type { UserReport, User } from "@/types";
+import { getAllRows, getRow, writeRow, mergeRow } from "./store";
+import type { UserReport } from "@/types";
 
-// ===== User reporting (feature 9) =====
-export function reportUser(data: Omit<UserReport, "id" | "createdAt">): UserReport {
-  const record = insert("user_reports", {
-    id: uuidv4(),
+// ===== User reporting =====
+export async function reportUser(
+  data: Omit<UserReport, "id" | "createdAt">
+): Promise<UserReport> {
+  const id = uuidv4();
+  const now = new Date().toISOString();
+  await writeRow("user_reports", id, {
     ...data,
-    createdAt: new Date().toISOString(),
+    createdAt: now,
   });
-  return record as UserReport;
+  return { ...data, id, createdAt: now };
 }
 
-export function getUserReports(reportedUserId: string): UserReport[] {
-  return selectAll("user_reports").filter(
-    (r: any) => r.reportedUserId === reportedUserId
-  ) as unknown as UserReport[];
+export async function getUserReports(
+  reportedUserId: string
+): Promise<UserReport[]> {
+  const rows = await getAllRows("user_reports");
+  return rows
+    .filter((r) => r.data.reportedUserId === reportedUserId)
+    .map((r) => ({ id: r.id, ...r.data } as unknown as UserReport));
 }
 
-// ===== Blocklist (feature 9) =====
-export function toggleBlock(userId: string, currentBlocklist: string[], blockedUserId: string): string[] {
+// ===== Blocklist =====
+export async function toggleBlock(
+  userId: string,
+  currentBlocklist: string[],
+  blockedUserId: string
+): Promise<string[]> {
   const next = currentBlocklist.includes(blockedUserId)
     ? currentBlocklist.filter((id) => id !== blockedUserId)
     : [...currentBlocklist, blockedUserId];
-  // Persist onto the user's row
-  dbUpdate("users", (r: any) => r.id === userId, {
-    blocklist: JSON.stringify(next),
-  });
+  await mergeRow("users", userId, { blocklist: JSON.stringify(next) });
   return next;
 }
 
-export function getBlocklist(userId: string): string[] {
-  const row = selectAll("users").find((r: any) => r.id === userId) as any;
+export async function getBlocklist(userId: string): Promise<string[]> {
+  const row = await getRow("users", userId);
   if (!row) return [];
   try {
-    return JSON.parse(row.blocklist || "[]");
+    const bl = row.blocklist;
+    if (Array.isArray(bl)) return bl;
+    return JSON.parse(bl || "[]");
   } catch {
     return [];
   }

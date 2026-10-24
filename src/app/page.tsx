@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { AuthProvider, AppProvider, useApp } from "@/components/providers";
 import { LandingPage } from "@/components/landing";
 import { LoginPage, RegisterPage } from "@/components/auth";

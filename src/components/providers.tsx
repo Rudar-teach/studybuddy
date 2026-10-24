@@ -4,6 +4,21 @@ import React, { createContext, useContext, useState, useEffect, useCallback, typ
 import { createSupabaseClient } from "@/lib/supabase";
 import type { User, StudyGroup, CollaborationRequest, Message } from "@/types";
 
+/**
+ * Mirror the Supabase access token into localStorage so that API route
+ * fetches made from individual page components can attach it as a Bearer
+ * token without each one having to reach into the Supabase session.
+ */
+export function syncSupabaseToken(session: any) {
+  if (typeof window === "undefined") return;
+  const token = session?.access_token;
+  if (token) {
+    window.localStorage.setItem("studybuddy_token", token);
+  } else {
+    window.localStorage.removeItem("studybuddy_token");
+  }
+}
+
 interface Project {
   id: string;
   title: string;
@@ -120,12 +135,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data: { session } } = await supabase.auth.getSession();
       if (!mounted) return;
       setSession(session);
+      syncSupabaseToken(session);
       if (session?.user) setUser(userFromSession(session));
       setIsLoading(false);
 
       const { data } = supabase.auth.onAuthStateChange((_event, session) => {
         if (!mounted) return;
         setSession(session);
+        syncSupabaseToken(session);
         if (session?.user) setUser(userFromSession(session));
         else setUser(null);
       });
@@ -169,6 +186,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     const supabase = createSupabaseClient();
     if (supabase) await supabase.auth.signOut();
+    syncSupabaseToken(null);
     setUser(null);
     setSession(null);
   }, []);

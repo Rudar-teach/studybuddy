@@ -1,48 +1,65 @@
 import { v4 as uuidv4 } from "uuid";
-import { insert, selectAll, selectOne, dbUpdate } from "./database";
+import { getAllRows, getRow, writeRow, mergeRow } from "./store";
 import type { CollaborationRequest } from "@/types";
 
-export function createRequest(data: Omit<CollaborationRequest, "id" | "createdAt">): CollaborationRequest {
+export async function createRequest(
+  data: Omit<CollaborationRequest, "id" | "createdAt">
+): Promise<CollaborationRequest> {
   const id = uuidv4();
   const now = new Date().toISOString();
-  const record = insert("collaboration_requests", {
+  await writeRow("collaboration_requests", id, {
     ...data,
-    id,
     createdAt: now,
   });
-  return record as CollaborationRequest;
+  return { ...data, id, createdAt: now };
 }
 
-export function getRequestsForUser(userId: string): CollaborationRequest[] {
-  return selectAll("collaboration_requests")
-    .filter((r) => r.toUserId === userId)
+export async function getRequestsForUser(userId: string): Promise<CollaborationRequest[]> {
+  const rows = await getAllRows("collaboration_requests");
+  return rows
+    .filter((r) => r.data.toUserId === userId)
+    .map((r) => ({ id: r.id, ...r.data } as unknown as CollaborationRequest))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
-export function getSentRequests(userId: string): CollaborationRequest[] {
-  return selectAll("collaboration_requests")
-    .filter((r) => r.fromUserId === userId)
+export async function getSentRequests(userId: string): Promise<CollaborationRequest[]> {
+  const rows = await getAllRows("collaboration_requests");
+  return rows
+    .filter((r) => r.data.fromUserId === userId)
+    .map((r) => ({ id: r.id, ...r.data } as unknown as CollaborationRequest))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
-export function getRequestById(id: string): CollaborationRequest | undefined {
-  return selectOne("collaboration_requests", (r) => r.id === id) as CollaborationRequest | undefined;
+export async function getRequestById(id: string): Promise<CollaborationRequest | undefined> {
+  const row = await getRow("collaboration_requests", id);
+  if (!row) return undefined;
+  return { id, ...row } as unknown as CollaborationRequest;
 }
 
-export function updateRequestStatus(id: string, status: CollaborationRequest["status"]): CollaborationRequest | undefined {
-  dbUpdate("collaboration_requests", (r) => r.id === id, { status });
+export async function updateRequestStatus(
+  id: string,
+  status: CollaborationRequest["status"]
+): Promise<CollaborationRequest | undefined> {
+  await mergeRow("collaboration_requests", id, { status });
   return getRequestById(id);
 }
 
-export function deleteRequest(id: string): boolean {
-  const all = selectAll("collaboration_requests");
-  const target = all.find((r) => r.id === id);
-  if (!target) return false;
-  return dbUpdate("collaboration_requests", (r) => r.id === id, { deleted: true }) !== undefined;
+export async function deleteRequest(id: string): Promise<boolean> {
+  await mergeRow("collaboration_requests", id, { deleted: true });
+  return true;
 }
 
-export function checkExistingRequest(fromUserId: string, toUserId: string, targetId: string): CollaborationRequest | undefined {
-  return selectAll("collaboration_requests").find(
-    (r) => r.fromUserId === fromUserId && r.toUserId === toUserId && r.targetId === targetId && r.status === "pending"
-  ) as CollaborationRequest | undefined;
+export async function checkExistingRequest(
+  fromUserId: string,
+  toUserId: string,
+  targetId: string
+): Promise<boolean> {
+  const rows = await getAllRows("collaboration_requests");
+  return rows.some(
+    (r) =>
+      r.data.fromUserId === fromUserId &&
+      r.data.toUserId === toUserId &&
+      r.data.targetId === targetId &&
+      r.data.status === "pending"
+  );
 }

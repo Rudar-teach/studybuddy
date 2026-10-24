@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Allow: /pages/privacy
+Allow: /pages/terms
+
+Disallow: /admin
+Disallow: /api/

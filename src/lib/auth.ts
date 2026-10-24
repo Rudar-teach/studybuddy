@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { insert, selectAll, selectOne, dbUpdate } from "./database";
+import { getAllRows, getRow, writeRow, mergeRow } from "./store";
 import type { User, Skill } from "@/types";
 
 function parseArray<T>(v: unknown, fallback: T[]): T[] {
@@ -15,44 +15,43 @@ function parseArray<T>(v: unknown, fallback: T[]): T[] {
   return Array.isArray(fallback) ? fallback : [];
 }
 
-function normalizeUser(row: any): User {
-  const subjects = parseArray<string>(row.subjects, []);
-  const skills = parseArray<Skill>(row.skills, []);
-  const availability = parseArray<any>(row.availability, []);
-  const learningGoals = parseArray<string>(row.learningGoals, []);
-  const blocklist = parseArray<string>(row.blocklist, []);
-
+function normalizeUser(id: string, row: any): User {
   return {
-    id: row.id,
+    id,
     email: row.email || "",
     name: row.name || "",
     password: row.password || "",
     avatar: row.avatar || "",
     bio: row.bio || "",
-    subjects,
-    skills,
-    availability,
-    learningGoals,
+    subjects: parseArray<string>(row.subjects, []),
+    skills: parseArray<Skill>(row.skills, []),
+    availability: parseArray<any>(row.availability, []),
+    learningGoals: parseArray<string>(row.learningGoals, []),
     year: row.year || "",
     major: row.major || "",
     createdAt: row.createdAt || new Date().toISOString(),
     lastActiveAt: row.lastActiveAt,
-    blocklist,
+    blocklist: parseArray<string>(row.blocklist, []),
   };
 }
 
-export function getUserById(id: string): User | undefined {
-  return normalizeUser(selectOne("users", (r) => r.id === id));
+export async function getUserById(id: string): Promise<User | undefined> {
+  const row = await getRow("users", id);
+  if (!row) return undefined;
+  return normalizeUser(id, row);
 }
 
-export function getUserByEmail(email: string): User | undefined {
-  return normalizeUser(selectOne("users", (r) => r.email === email));
+export async function getUserByEmail(email: string): Promise<User | undefined> {
+  const rows = await getAllRows("users");
+  const found = rows.find((r) => (r.data.email || "").toLowerCase() === email.toLowerCase());
+  if (!found) return undefined;
+  return normalizeUser(found.id, found.data);
 }
 
-export function createUser(user: Omit<User, "createdAt">): User {
+export async function createUser(user: Omit<User, "createdAt">): Promise<User> {
+  const id = user.id || uuidv4();
   const now = new Date().toISOString();
-  const record = insert("users", {
-    id: user.id || uuidv4(),
+  await writeRow("users", id, {
     email: user.email,
     name: user.name,
     password: user.password,
@@ -68,45 +67,43 @@ export function createUser(user: Omit<User, "createdAt">): User {
     lastActiveAt: now,
     createdAt: now,
   });
-  return { ...user, id: record.id, createdAt: now, lastActiveAt: now };
+  return { ...user, id, createdAt: now, lastActiveAt: now };
 }
 
-export function updateUser(id: string, updates: Partial<User>): User | undefined {
-  const existing = getUserById(id);
+export async function updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
+  const existing = await getUserById(id);
   if (!existing) return undefined;
 
   const merged = { ...existing, ...updates };
-  dbUpdate(
-    "users",
-    (r: any) => r.id === id,
-    {
-      name: merged.name,
-      bio: merged.bio,
-      subjects: JSON.stringify(merged.subjects),
-      skills: JSON.stringify(merged.skills),
-      availability: JSON.stringify(merged.availability),
-      learningGoals: JSON.stringify(merged.learningGoals),
-      year: merged.year,
-      major: merged.major,
-      avatar: merged.avatar || "",
-      blocklist: JSON.stringify(merged.blocklist || []),
-    }
-  );
+  await mergeRow("users", id, {
+    name: merged.name,
+    bio: merged.bio,
+    subjects: JSON.stringify(merged.subjects),
+    skills: JSON.stringify(merged.skills),
+    availability: JSON.stringify(merged.availability),
+    learningGoals: JSON.stringify(merged.learningGoals),
+    year: merged.year,
+    major: merged.major,
+    avatar: merged.avatar || "",
+    blocklist: JSON.stringify(merged.blocklist || []),
+  });
   return getUserById(id);
 }
 
 /** Stamp lastActiveAt without touching other fields. */
-export function touchUser(id: string): void {
-  dbUpdate("users", (r: any) => r.id === id, { lastActiveAt: new Date().toISOString() });
+export async function touchUser(id: string): Promise<void> {
+  await mergeRow("users", id, { lastActiveAt: new Date().toISOString() });
 }
 
-export function getAllUsers(): User[] {
-  return selectAll("users").map(normalizeUser);
+export async function getAllUsers(): Promise<User[]> {
+  const rows = await getAllRows("users");
+  return rows.map((r) => normalizeUser(r.id, r.data));
 }
 
-export function getUsersByIds(ids: string[]): User[] {
+export async function getUsersByIds(ids: string[]): Promise<User[]> {
   if (ids.length === 0) return [];
-  return selectAll("users")
-    .filter((u) => ids.includes(u.id))
-    .map(normalizeUser);
+  const rows = await getAllRows("users");
+  return rows
+    .filter((r) => ids.includes(r.id))
+    .map((r) => normalizeUser(r.id, r.data));
 }

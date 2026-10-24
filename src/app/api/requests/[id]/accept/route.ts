@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
-import { getUserFromRequest } from "@/lib/auth-middleware";
 import { getRequestById, updateRequestStatus } from "@/lib/requests";
+import { joinGroup } from "@/lib/groups";
 import { addCollaborator } from "@/lib/projects";
-import { joinGroup as joinGroupLib } from "@/lib/groups";
+import { getUserFromRequest } from "@/lib/auth-middleware";
+import { initStore } from "@/lib/store";
+import { logError } from "@/lib/logger";
 
 export async function POST(
   request: Request,
@@ -12,30 +14,28 @@ export async function POST(
     const user = await getUserFromRequest(request);
     if (user instanceof Response) return user;
 
+    initStore();
     const { id } = await params;
-    const req = getRequestById(id);
+    const req = await getRequestById(id);
     if (!req) {
       return NextResponse.json({ error: "Request not found" }, { status: 404 });
     }
-
     if (req.toUserId !== user.id) {
-      return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+      return NextResponse.json({ error: "Not your request" }, { status: 403 });
     }
 
-    const updated = updateRequestStatus(id, "accepted");
-    if (!updated) {
-      return NextResponse.json({ error: "Failed to update" }, { status: 500 });
-    }
+    const updated = await updateRequestStatus(id, "accepted");
 
+    // Side effect: join group / add collaborator
     if (req.type === "study-group") {
-      joinGroupLib(req.targetId, req.fromUserId);
-    } else if (req.type === "project-partner") {
-      addCollaborator(req.targetId, req.fromUserId);
+      await joinGroup(req.targetId, user.id);
+    } else {
+      await addCollaborator(req.targetId, user.id);
     }
 
     return NextResponse.json({ request: updated });
   } catch (error) {
-    console.error("Accept request error:", error);
+    logError("Accept request error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

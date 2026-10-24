@@ -1,30 +1,60 @@
 import { v4 as uuidv4 } from "uuid";
-import { insert, selectAll, selectOne, dbUpdate, dbRemove } from "./database";
-import type { StudyGroup, Schedule, GroupSession, GroupResource, GroupCheckin } from "@/types";
+import { getAllRows, getRow, writeRow, mergeRow } from "./store";
+import type {
+  StudyGroup,
+  GroupSession,
+  GroupResource,
+  GroupCheckin,
+} from "@/types";
 
-function normalizeGroup(row: any): StudyGroup {
+async function normalizeGroup(id: string, row: any): Promise<StudyGroup> {
   return {
-    ...row,
+    id,
+    name: row.name,
+    description: row.description || "",
+    subject: row.subject,
+    members: JSON.parse(row.members || "[]"),
+    creatorId: row.creatorId,
+    maxMembers: row.maxMembers ?? 10,
     schedule: JSON.parse(row.schedule || "[]"),
     goals: JSON.parse(row.goals || "[]"),
+    createdAt: row.createdAt,
   };
 }
 
-export function getGroupById(id: string): StudyGroup | undefined {
-  return normalizeGroup(selectOne("study_groups", (r) => r.id === id));
+export async function getGroupById(id: string): Promise<StudyGroup | undefined> {
+  const row = await getRow("study_groups", id);
+  if (!row) return undefined;
+  try {
+    return await normalizeGroup(id, row);
+  } catch {
+    return undefined;
+  }
 }
 
-export function getAllGroups(): StudyGroup[] {
-  return selectAll("study_groups").map(normalizeGroup);
+export async function getAllGroups(): Promise<StudyGroup[]> {
+  const rows = await getAllRows("study_groups");
+  const out: StudyGroup[] = [];
+  for (const r of rows) {
+    try {
+      out.push(await normalizeGroup(r.id, r.data));
+    } catch {
+      /* skip malformed */
+    }
+  }
+  return out;
 }
 
-export function getGroupsByUser(userId: string): StudyGroup[] {
-  return selectAll("study_groups").filter((g) => g.members?.includes(userId)).map(normalizeGroup);
+export async function getGroupsByUser(userId: string): Promise<StudyGroup[]> {
+  const all = await getAllGroups();
+  return all.filter((g) => g.members?.includes(userId));
 }
 
-export function createGroup(data: Omit<StudyGroup, "id" | "createdAt">): StudyGroup {
-  const record = insert("study_groups", {
-    id: uuidv4(),
+export async function createGroup(
+  data: Omit<StudyGroup, "id" | "createdAt">
+): Promise<StudyGroup> {
+  const id = uuidv4();
+  await writeRow("study_groups", id, {
     name: data.name,
     description: data.description,
     subject: data.subject,
@@ -35,138 +65,193 @@ export function createGroup(data: Omit<StudyGroup, "id" | "createdAt">): StudyGr
     goals: JSON.stringify(data.goals),
     createdAt: new Date().toISOString(),
   });
-  return normalizeGroup(record);
+  const created = await getGroupById(id);
+  if (!created) throw new Error("failed to persist group");
+  return created;
 }
 
-export function joinGroup(id: string, userId: string): StudyGroup | undefined {
-  const group = getGroupById(id);
+export async function joinGroup(
+  id: string,
+  userId: string
+): Promise<StudyGroup | undefined> {
+  const group = await getGroupById(id);
   if (!group) return undefined;
-  const members = [...(group.members || []), userId];
-  dbUpdate("study_groups", (r) => r.id === id, { members: JSON.stringify(members) });
+  if (group.members.includes(userId)) return group;
+  const members = [...group.members, userId];
+  await mergeRow("study_groups", id, { members: JSON.stringify(members) });
   return getGroupById(id);
 }
 
-export function leaveGroup(id: string, userId: string): StudyGroup | undefined {
-  const group = getGroupById(id);
+export async function leaveGroup(
+  id: string,
+  userId: string
+): Promise<StudyGroup | undefined> {
+  const group = await getGroupById(id);
   if (!group) return undefined;
-  const members = (group.members || []).filter((m: string) => m !== userId);
-  dbUpdate("study_groups", (r) => r.id === id, { members: JSON.stringify(members) });
+  const members = group.members.filter((m) => m !== userId);
+  await mergeRow("study_groups", id, { members: JSON.stringify(members) });
   return getGroupById(id);
 }
 
-export function deleteGroup(id: string): boolean {
-  return dbRemove("study_groups", (r) => r.id === id);
+// ===== Group sessions =====
+
+function normalizeSession(id: string, row: any): GroupSession {
+  return {
+    id,
+    groupId: row.groupId,
+    day: row.day,
+    time: row.time,
+    topic: row.topic || "",
+    link: row.link || "",
+    hostId: row.hostId,
+    rsvps: JSON.parse(row.rsvps || "[]"),
+    createdAt: row.createdAt,
+  };
 }
 
-// ===== Group sessions (feature 5) =====
-
-function normalizeIds(row: any) {
-  return { ...row, rsvps: JSON.parse(row.rsvps || "[]") };
+export async function getSessionsForGroup(groupId: string): Promise<GroupSession[]> {
+  const rows = await getAllRows("group_sessions");
+  return rows
+    .filter((r) => r.data.groupId === groupId)
+    .map((r) => normalizeSession(r.id, r.data));
 }
 
-export function getSessionsForGroup(groupId: string): GroupSession[] {
-  return selectAll("group_sessions")
-    .filter((s: any) => s.groupId === groupId)
-    .map(normalizeIds);
-}
-
-export function createSession(data: Omit<GroupSession, "id" | "createdAt" | "rsvps">): GroupSession {
-  const record = insert("group_sessions", {
-    id: uuidv4(),
+export async function createSession(
+  data: Omit<GroupSession, "id" | "createdAt" | "rsvps">
+): Promise<GroupSession> {
+  const id = uuidv4();
+  await writeRow("group_sessions", id, {
     ...data,
     rsvps: JSON.stringify([data.hostId]),
     createdAt: new Date().toISOString(),
   });
-  return normalizeIds(record);
+  const rows = await getAllRows("group_sessions");
+  const created = rows.find((r) => r.id === id);
+  return normalizeSession(id, created?.data || {});
 }
 
-export function removeSession(sessionId: string): boolean {
-  return dbRemove("group_sessions", (r: any) => r.id === sessionId);
+export async function removeSession(sessionId: string): Promise<boolean> {
+  await mergeRow("group_sessions", sessionId, { deleted: true });
+  return true;
 }
 
-export function toggleSessionRsvp(sessionId: string, userId: string): GroupSession | undefined {
-  const row = selectOne("group_sessions", (r: any) => r.id === sessionId);
-  if (!row) return undefined;
+export async function toggleSessionRsvp(
+  sessionId: string,
+  userId: string
+): Promise<GroupSession | undefined> {
+  const rows = await getAllRows("group_sessions");
+  const target = rows.find((r) => r.id === sessionId);
+  if (!target) return undefined;
   let rsvps: string[] = [];
   try {
-    rsvps = JSON.parse(row.rsvps || "[]");
+    rsvps = JSON.parse(target.data.rsvps || "[]");
   } catch {
     rsvps = [];
   }
-  const has = rsvps.includes(userId);
-  const next = has ? rsvps.filter((id) => id !== userId) : [...rsvps, userId];
-  dbUpdate("group_sessions", (r: any) => r.id === sessionId, { rsvps: JSON.stringify(next) });
-  return normalizeIds({ ...row, rsvps: JSON.stringify(next) });
+  const next = rsvps.includes(userId)
+    ? rsvps.filter((i) => i !== userId)
+    : [...rsvps, userId];
+  await mergeRow("group_sessions", sessionId, { rsvps: JSON.stringify(next) });
+  return normalizeSession(sessionId, { ...target.data, rsvps: JSON.stringify(next) });
 }
 
-// ===== Group resources (feature 6) =====
+// ===== Group resources =====
 
-export function getResourcesForGroup(groupId: string): GroupResource[] {
-  return selectAll("group_resources")
-    .filter((r: any) => r.groupId === groupId)
-    .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+export async function getResourcesForGroup(groupId: string): Promise<GroupResource[]> {
+  const rows = await getAllRows("group_resources");
+  return rows
+    .filter((r) => r.data.groupId === groupId)
+    .map((r) => ({
+      id: r.id,
+      groupId: r.data.groupId,
+      title: r.data.title,
+      url: r.data.url,
+      type: r.data.type,
+      note: r.data.note,
+      addedBy: r.data.addedBy,
+      createdAt: r.data.createdAt,
+    }))
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
 }
 
-export function createResource(
+export async function createResource(
   data: Omit<GroupResource, "id" | "createdAt">
-): GroupResource {
-  const record = insert("group_resources", {
-    id: uuidv4(),
+): Promise<GroupResource> {
+  const id = uuidv4();
+  await writeRow("group_resources", id, {
     ...data,
     createdAt: new Date().toISOString(),
   });
-  return record as GroupResource;
+  return { ...data, id, createdAt: new Date().toISOString() };
 }
 
-export function removeResource(resourceId: string): boolean {
-  return dbRemove("group_resources", (r: any) => r.id === resourceId);
+export async function removeResource(resourceId: string): Promise<boolean> {
+  await mergeRow("group_resources", resourceId, { deleted: true });
+  return true;
 }
 
-// ===== Group check-ins (feature 7) =====
+// ===== Group check-ins =====
 
-export function getCheckinsForGroup(groupId: string): GroupCheckin[] {
-  return selectAll("group_checkins")
-    .filter((c: any) => c.groupId === groupId)
-    .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+export async function getCheckinsForGroup(groupId: string): Promise<GroupCheckin[]> {
+  const rows = await getAllRows("group_checkins");
+  return rows
+    .filter((r) => r.data.groupId === groupId)
+    .map((r) => ({
+      id: r.id,
+      groupId: r.data.groupId,
+      userId: r.data.userId,
+      status: r.data.status,
+      note: r.data.note || "",
+      createdAt: r.data.createdAt,
+    }))
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
 }
 
-export function createCheckin(data: Omit<GroupCheckin, "id" | "createdAt">): GroupCheckin {
-  const record = insert("group_checkins", {
-    id: uuidv4(),
+export async function createCheckin(
+  data: Omit<GroupCheckin, "id" | "createdAt">
+): Promise<GroupCheckin> {
+  const id = uuidv4();
+  await writeRow("group_checkins", id, {
     ...data,
     createdAt: new Date().toISOString(),
   });
-  return record as GroupCheckin;
+  return { ...data, id, createdAt: new Date().toISOString() };
 }
 
-// ===== Engagement / leaderboard (feature 3) =====
-
-export function groupEngagement(groupId: string): { userId: string; messages: number; rsvps: number; checkins: number }[] {
-  const msgs = selectAll("messages").filter((m: any) => m.groupId === groupId);
-  const sess = selectAll("group_sessions").filter((s: any) => s.groupId === groupId);
-  const checks = selectAll("group_checkins").filter((c: any) => c.groupId === groupId);
+// ===== Engagement / leaderboard =====
+export async function groupEngagement(
+  groupId: string
+): Promise<{ userId: string; messages: number; rsvps: number; checkins: number }[]> {
+  const msgs = (await getAllRows("messages")).filter((r) => r.data.groupId === groupId);
+  const sess = (await getAllRows("group_sessions")).filter((r) => r.data.groupId === groupId);
+  const checks = (await getAllRows("group_checkins")).filter((r) => r.data.groupId === groupId);
 
   const counts = new Map<string, { userId: string; messages: number; rsvps: number; checkins: number }>();
-
   const bump = (id: string, key: "messages" | "rsvps" | "checkins") => {
     if (!counts.has(id)) counts.set(id, { userId: id, messages: 0, rsvps: 0, checkins: 0 });
-    const entry = counts.get(id)!;
-    entry[key] += 1;
+    const e = counts.get(id)!;
+    e[key] += 1;
   };
-
-  msgs.forEach((m: any) => bump(m.senderId, "messages"));
-  sess.forEach((s: any) => {
+  msgs.forEach((m) => bump(m.data.senderId, "messages"));
+  sess.forEach((s) => {
     let rsvps: string[] = [];
     try {
-      rsvps = JSON.parse(s.rsvps || "[]");
+      rsvps = JSON.parse(s.data.rsvps || "[]");
     } catch {
       rsvps = [];
     }
-    rsvps.forEach((id: string) => bump(id, "rsvps"));
+    rsvps.forEach((id) => bump(id, "rsvps"));
   });
-  checks.forEach((c: any) => bump(c.userId, "checkins"));
+  checks.forEach((c) => bump(c.data.userId, "checkins"));
 
   return [...counts.values()].sort(
-    (a, b) => b.messages + b.rsvps + b.checkins - (a.messages + a.rsvps + a.checkins)
+    (a, b) =>
+      b.messages + b.rsvps + b.checkins - (a.messages + a.rsvps + a.checkins)
   );
 }
