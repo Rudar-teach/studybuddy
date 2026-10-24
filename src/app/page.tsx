@@ -31,13 +31,13 @@ function AppContent() {
     }
   }, [user, isLoading, currentPage, navigateTo]);
 
-  if (isLoading && !providerError) {
+  if (isLoading) {
     return <LoadingScreen />;
   }
 
-  if (providerError) {
-    return <LoadingScreen failed />;
-  }
+  // Auth init failed or timed out: render the public pages as signed-out
+  // instead of blocking. Sign-in will surface an error toast if Supabase
+  // is not configured.
 
   // Not logged in — show public pages only
   if (!user) {

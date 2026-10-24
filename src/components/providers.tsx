@@ -118,53 +118,82 @@ function applyTheme(theme: "dark" | "light") {
 const AuthContext = createContext<AuthContextType | null>(null);
 const AppContext = createContext<AppContextType | null>(null);
 
+// Hard ceiling so the app can NEVER be blocked on auth init: if the session
+// lookup is still pending after this many ms, stop waiting and render the
+// app as signed-out. Sign-in still works afterwards.
+const AUTH_INIT_TIMEOUT_MS = 4000;
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [providerError, setProviderError] = useState(false);
+  const settledRef = React.useRef(false);
+
+  const settle = useCallback((hadError: boolean) => {
+    if (settledRef.current) return;
+    settledRef.current = true;
+    setProviderError(hadError);
+    setIsLoading(false);
+  }, []);
 
   useEffect(() => {
     let mounted = true;
     let unsubscribe: (() => void) | null = null;
 
+    // Safety net: no matter what happens (network hang, SDK quirk, storage
+    // prompt), the loading screen can never block the app forever.
+    const timeout = window.setTimeout(() => {
+      console.warn("Auth init timed out; continuing without a session.");
+      settle(true);
+    }, AUTH_INIT_TIMEOUT_MS);
+
     (async () => {
       try {
         const supabase = createSupabaseClient();
         if (!supabase) {
-          if (mounted) setIsLoading(false);
+          settle(false);
           return;
         }
 
-        const { data: { session } } = await supabase.auth.getSession();
+        // getSession() is the one call that can hang on a bad URL; race it
+        // against a timer so it cannot hold the app hostage.
+        const raced = await Promise.race([
+          supabase.auth.getSession(),
+          new Promise((resolve) =>
+            setTimeout(() => resolve({ data: { session: null } }), AUTH_INIT_TIMEOUT_MS - 500)
+          ),
+        ]);
+        const data = raced as { data: { session: any | null } };
         if (!mounted) return;
-        setSession(session);
-        syncSupabaseToken(session);
-        if (session?.user) setUser(userFromSession(session));
-        setIsLoading(false);
+        const s = data.data.session;
+        setSession(s);
+        syncSupabaseToken(s);
+        if (s?.user) setUser(userFromSession(s));
+        settle(false);
 
-        const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
           if (!mounted) return;
-          setSession(session);
-          syncSupabaseToken(session);
-          if (session?.user) setUser(userFromSession(session));
+          setSession(next);
+          syncSupabaseToken(next);
+          if (next?.user) setUser(userFromSession(next));
           else setUser(null);
         });
-        unsubscribe = () => data.subscription.unsubscribe();
+        unsubscribe = () => sub?.subscription?.unsubscribe?.();
       } catch (err) {
-        if (mounted) {
-          console.error("Auth init failed:", err);
-          setProviderError(true);
-          setIsLoading(false);
-        }
+        console.error("Auth init failed:", err);
+        if (mounted) settle(true);
+      } finally {
+        window.clearTimeout(timeout);
       }
     })();
 
     return () => {
       mounted = false;
+      window.clearTimeout(timeout);
       unsubscribe?.();
     };
-  }, []);
+  }, [settle]);
 
   const login = useCallback(async (email: string, password: string) => {
     try {
