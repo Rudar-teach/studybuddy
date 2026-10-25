@@ -1,21 +1,40 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
-import { createSupabaseClient } from "@/lib/supabase";
+import {
+  subscribeAuth,
+  firebaseSignIn,
+  firebaseSignUp,
+  firebaseSignOut,
+  isFirebaseAuthConfigured,
+  getFirebaseAuth,
+} from "@/lib/firebase-auth";
 import type { User, StudyGroup, CollaborationRequest, Message } from "@/types";
 
 /**
- * Mirror the Supabase access token into localStorage so that API route
- * fetches made from individual page components can attach it as a Bearer
- * token without each one having to reach into the Supabase session.
+ * Mirror the current Firebase ID token into localStorage so that API
+ * route fetches made from individual page components can attach it as a
+ * Bearer token without each one having to reach into the auth state.
  */
-export function syncSupabaseToken(session: any) {
+export function syncFirebaseToken() {
   if (typeof window === "undefined") return;
-  const token = session?.access_token;
-  if (token) {
-    window.localStorage.setItem("studybuddy_token", token);
-  } else {
-    window.localStorage.removeItem("studybuddy_token");
+  try {
+    const user = getFirebaseAuth().currentUser;
+    if (user) {
+      // Refresh the ID token lazily; store it so route fetches can attach it.
+      user.getIdToken(true)
+        .then((t) => window.localStorage.setItem("studybuddy_token", t))
+        .catch(() => {
+          window.localStorage.setItem(
+            "studybuddy_token",
+            user.uid
+          );
+        });
+    } else {
+      window.localStorage.removeItem("studybuddy_token");
+    }
+  } catch {
+    /* Firebase not ready yet */
   }
 }
 
@@ -30,21 +49,26 @@ interface Project {
   createdAt: string;
 }
 
-function userFromSession(session: any): User {
+function userFromFirebaseUser(u: {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+}): User {
   return {
-    id: session.user.id,
-    email: session.user.email || "",
-    name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "",
+    id: u.uid,
+    email: u.email || "",
+    name: u.displayName || u.email?.split("@")[0] || "",
     password: "",
-    bio: session.user.user_metadata?.bio || "",
-    subjects: session.user.user_metadata?.subjects || [],
-    skills: session.user.user_metadata?.skills || [],
-    availability: session.user.user_metadata?.availability || [],
-    learningGoals: session.user.user_metadata?.learning_goals || [],
-    year: session.user.user_metadata?.year || "",
-    major: session.user.user_metadata?.major || "",
-    createdAt: session.user.created_at || new Date().toISOString(),
-    avatar: session.user.user_metadata?.avatar_url || "",
+    bio: "",
+    subjects: [],
+    skills: [],
+    availability: [],
+    learningGoals: [],
+    year: "",
+    major: "",
+    createdAt: new Date().toISOString(),
+    avatar: u.photoURL || "",
   };
 }
 
@@ -152,40 +176,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     (async () => {
       try {
-        const supabase = createSupabaseClient();
-        if (!supabase) {
+        if (!isFirebaseAuthConfigured()) {
+          // No Firebase keys: run unsigned. The user can still browse the
+          // public pages; sign-in will surface a configuration notice.
           settle(false);
           return;
         }
 
-        // getSession() can hang on a bad URL / stale local storage. Race it
-        // against a timer, and if it throws, fall through to the timeout.
-        let sessionData: any = null;
-        try {
-          const raced = await Promise.race([
-            supabase.auth.getSession(),
-            new Promise((resolve) =>
-              setTimeout(() => resolve(null), AUTH_INIT_TIMEOUT_MS - 800)
-            ),
-          ]);
-          sessionData = (raced as any)?.data?.session ?? null;
-        } catch {
-          sessionData = null;
-        }
-        if (!mounted) return;
-        setSession(sessionData);
-        syncSupabaseToken(sessionData);
-        if (sessionData?.user) setUser(userFromSession(sessionData));
-        settle(false);
-
-        const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
+        // onAuthStateChanged resolves the persisted session quickly. Race
+        // against the hard timeout so a stuck auth call cannot block the UI.
+        let settledFromEvent = false;
+        const unsub = subscribeAuth(({ user: fbUser }) => {
           if (!mounted) return;
-          setSession(next);
-          syncSupabaseToken(next);
-          if (next?.user) setUser(userFromSession(next));
-          else setUser(null);
+          settledFromEvent = true;
+          setSession(fbUser ? { user: fbUser } : null);
+          syncFirebaseToken();
+          setUser(fbUser ? userFromFirebaseUser(fbUser) : null);
         });
-        unsubscribe = () => sub?.subscription?.unsubscribe?.();
+        unsubscribe = () => unsub();
+
+        await Promise.race([
+          new Promise<void>((resolve) => {
+            // onAuthStateChanged fires its initial callback shortly after
+            // subscribe; poll up to the timeout for it to settle.
+            const start = Date.now();
+            const tick = () => {
+              if (settledFromEvent || Date.now() - start >= AUTH_INIT_TIMEOUT_MS - 500) {
+                resolve();
+              } else {
+                setTimeout(tick, 100);
+              }
+            };
+            tick();
+          }),
+          new Promise((resolve) => setTimeout(resolve, AUTH_INIT_TIMEOUT_MS - 500)),
+        ]);
+        settle(false);
       } catch (err) {
         if (process.env.NODE_ENV === "development") {
           console.error("Auth init failed:", err);
@@ -204,37 +230,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [settle]);
 
   const login = useCallback(async (email: string, password: string) => {
+    if (!isFirebaseAuthConfigured()) {
+      return { success: false, error: "Firebase is not configured. Add your Firebase keys to .env and restart." };
+    }
     try {
-      const supabase = createSupabaseClient();
-      if (!supabase) return { success: false, error: "Supabase not configured" };
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) return { success: false, error: error.message };
+      await firebaseSignIn(email, password);
       return { success: true };
-    } catch {
-      return { success: false, error: "Network error" };
+    } catch (e: any) {
+      return { success: false, error: e?.message || "Sign-in failed" };
     }
   }, []);
 
   const register = useCallback(async (userData: RegisterData) => {
+    if (!isFirebaseAuthConfigured()) {
+      return { success: false, error: "Firebase is not configured. Add your Firebase keys to .env and restart." };
+    }
     try {
-      const supabase = createSupabaseClient();
-      if (!supabase) return { success: false, error: "Supabase not configured" };
-      const { error } = await supabase.auth.signUp({
-        email: userData.email,
-        password: userData.password,
-        options: { data: { full_name: userData.name } },
-      });
-      if (error) return { success: false, error: error.message };
+      await firebaseSignUp(userData.name, userData.email, userData.password);
       return { success: true };
-    } catch {
-      return { success: false, error: "Network error" };
+    } catch (e: any) {
+      return { success: false, error: e?.message || "Registration failed" };
     }
   }, []);
 
   const logout = useCallback(async () => {
-    const supabase = createSupabaseClient();
-    if (supabase) await supabase.auth.signOut();
-    syncSupabaseToken(null);
+    try {
+      await firebaseSignOut();
+    } catch {
+      /* not signed in or Firebase unconfigured */
+    }
+    syncFirebaseToken();
     setUser(null);
     setSession(null);
   }, []);

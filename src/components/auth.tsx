@@ -172,7 +172,7 @@ export function RegisterPage() {
             <span className="text-2xl font-bold gradient-text">StudyBuddy</span>
           </button>
           <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
-          <p className="text-slate-400">Join thousands of students already on StudyBuddy</p>
+          <p className="text-slate-400">Create an account and start matching</p>
         </div>
 
         <form onSubmit={handleSubmit} className="glass rounded-2xl p-8 border border-slate-700/50 animate-slide-up">

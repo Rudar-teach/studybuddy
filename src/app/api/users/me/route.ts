@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getUserFromRequest } from "@/lib/auth-middleware";
+import { firebaseUpdateName } from "@/lib/firebase-auth";
 import { getUserById, updateUser, createUser } from "@/lib/auth";
-import { createSupabaseClient } from "@/lib/supabase";
+
 import { initStore, activeProvider } from "@/lib/store";
 import { safeJson, cleanText, cleanStringList, cleanUrl } from "@/lib/sanitize";
 import { logError } from "@/lib/logger";
@@ -10,17 +11,17 @@ export async function GET(request: Request) {
   try {
     const userResult = await getUserFromRequest(request);
     if (userResult instanceof Response) return userResult;
-    const supabaseUser = userResult;
+    const fbUser = userResult;
 
     initStore();
-    let appUser = await getUserById(supabaseUser.id);
+    let appUser = await getUserById(fbUser.id);
     if (!appUser) {
       appUser = await createUser({
-        id: supabaseUser.id,
-        email: supabaseUser.email || "",
+        id: fbUser.id,
+        email: fbUser.email || "",
         name:
-          supabaseUser.user_metadata?.full_name ||
-          supabaseUser.email?.split("@")[0] ||
+          fbUser.displayName ||
+          fbUser.email?.split("@")[0] ||
           "",
         password: "",
         bio: "",
@@ -30,7 +31,6 @@ export async function GET(request: Request) {
         learningGoals: [],
         year: "",
         major: "",
-        avatar: supabaseUser.user_metadata?.avatar_url || "",
       });
     }
 
@@ -50,7 +50,7 @@ export async function PUT(request: Request) {
   try {
     const userResult = await getUserFromRequest(request);
     if (userResult instanceof Response) return userResult;
-    const supabaseUser = userResult;
+    const fbUser = userResult;
 
     initStore();
     const body = await safeJson(request);
@@ -103,14 +103,15 @@ export async function PUT(request: Request) {
     if (clean.year) metadataUpdates.year = clean.year;
     if (clean.major) metadataUpdates.major = clean.major;
 
-    if (Object.keys(metadataUpdates).length > 0) {
-      const supabase = createSupabaseClient();
-      if (supabase) {
-        await supabase.auth.updateUser({ data: metadataUpdates });
+    if (clean.name) {
+      try {
+        await firebaseUpdateName(clean.name);
+      } catch {
+        /* best-effort; Firebase displayName sync */
       }
     }
 
-    const user = await updateUser(supabaseUser.id, clean);
+    const user = await updateUser(fbUser.id, clean);
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }

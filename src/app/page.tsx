@@ -36,7 +36,7 @@ function AppContent() {
   }
 
   // Auth init failed or timed out: render the public pages as signed-out
-  // instead of blocking. Sign-in will surface an error toast if Supabase
+  // instead of blocking. Sign-in will surface an error toast if Firebase
   // is not configured.
 
   // Not logged in — show public pages only

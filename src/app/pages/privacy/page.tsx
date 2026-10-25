@@ -30,9 +30,9 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-xl font-semibold text-white mb-3">Authentication</h2>
             <p>
-              Authentication is handled by Supabase. We do not store your password
-              in plaintext. Your session is a signed JWT issued by Supabase; we
-              verify it server-side on every authenticated request.
+              Authentication is handled by Firebase Auth. Passwords are stored and
+              verified by Firebase, not by us. Your session is a signed ID token;
+              we verify it server-side on every authenticated request.
             </p>
           </section>
 
@@ -66,9 +66,10 @@ export default function PrivacyPage() {
             <h2 className="text-xl font-semibold text-white mb-3">Security</h2>
             <p>
               Data is transmitted over HTTPS. API keys used by the frontend are
-              intentionally low-privilege (Supabase anon key) and are scoped by
-              row-level security in Supabase. Server-only keys (Firebase service
-              account, admin tokens) are never exposed to the browser.
+              intentionally scoped to your project's public data. Server-side
+              verification uses your Firebase project's REST API key, which
+              is a low-privilege credential. Admin tokens are server-only
+              and never exposed to the browser.
             </p>
           </section>
 

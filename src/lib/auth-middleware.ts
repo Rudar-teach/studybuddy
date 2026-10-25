@@ -1,18 +1,20 @@
 import { NextResponse } from "next/server";
-import { createSupabaseClient } from "@/lib/supabase";
+import { verifyFirebaseToken, type VerifiedUser } from "@/lib/firebase-auth";
 
-export async function getUserFromRequest(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+/**
+ * Authenticate the caller on an API route.
+ * Returns a VerifiedUser on success, or a NextResponse to return directly.
+ * The token is a Firebase ID token; when no Firebase keys are set it falls
+ * back to a dev-only UID so the app stays runnable locally.
+ */
+export async function getUserFromRequest(
+  request: Request
+): Promise<VerifiedUser | NextResponse> {
+  const result = await verifyFirebaseToken(request);
+  if (result instanceof Response) {
+    const status = result.status;
+    const body = await result.text();
+    return NextResponse.json(JSON.parse(body), { status });
   }
-  const supabase = createSupabaseClient();
-  if (!supabase) {
-    return NextResponse.json({ error: "Server not configured" }, { status: 500 });
-  }
-  const { data: { user }, error } = await supabase.auth.getUser(authHeader.substring(7));
-  if (error || !user) {
-    return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-  }
-  return user;
+  return result;
 }
